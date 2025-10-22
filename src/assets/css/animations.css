@@ -1,0 +1,114 @@
+/* Animação de Gota D'água - Expansão Circular */
+
+/* Classe para o botão que vai expandir */
+.expand-button {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+}
+
+/* Efeito de gota d'água - Alta Performance */
+.water-drop-effect {
+    position: fixed;
+    border-radius: 50%;
+    background: #1a1a1a;
+    backdrop-filter: blur(20px);
+    z-index: 9999;
+    pointer-events: none;
+    transform: scale(0);
+    transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    will-change: transform;
+    transform-origin: center center;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+}
+
+.water-drop-effect.expanding {
+    animation: waterDropExpand 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+@keyframes waterDropExpand {
+    0% {
+        transform: scale(0);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Container do novo conteúdo - Otimizado */
+.new-content-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10000;
+    opacity: 0;
+    visibility: hidden;
+    background: #1a1a1a;
+    transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+    overflow-y: auto;
+    will-change: opacity, visibility;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+.new-content-container.visible {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: all;
+}
+
+/* Animação de fade in gradual para o conteúdo - Otimizada */
+.new-content {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition-delay: 0.3s;
+    will-change: opacity, transform;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+.new-content.fade-in {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Animação de pulsação para o botão */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.expand-button:hover {
+    animation: pulse 2s infinite;
+}
+
+/* Animação de partículas (opcional) */
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+}
+
+.floating-element {
+    animation: float 3s ease-in-out infinite;
+}
+
+/* Efeito de shimmer no botão */
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+.shimmer-button {
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+}
