@@ -174,6 +174,7 @@ class NavigationService {
                     <div class="action-card" onclick="window.navigationService.navigateTo('create')">
                         <div class="action-icon create-icon"></div>
                         <h3>Criar Novo Contrato</h3>
+                        <p>Crie um contrato na rede Polygon</p>
                     </div>
                     
                     <div class="action-card" onclick="window.navigationService.navigateTo('manage')">
