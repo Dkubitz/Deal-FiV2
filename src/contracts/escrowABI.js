@@ -1,7 +1,3 @@
-// ABI do contrato EscrowUSDC_Dynamic_Production.sol
-// Atualizado em: 21/10/2025 - 07:17
-// Contrato compilado no Remix IDE
-
 const escrowABI = [
 	{
 		"inputs": [
@@ -11,7 +7,7 @@ const escrowABI = [
 				"type": "address"
 			},
 			{
-				"internalType": "address payable",
+				"internalType": "address",
 				"name": "_payee",
 				"type": "address"
 			},
@@ -35,27 +31,6 @@ const escrowABI = [
 		"type": "constructor"
 	},
 	{
-		"inputs": [],
-		"name": "FailedCall",
-		"type": "error"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "balance",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "needed",
-				"type": "uint256"
-			}
-		],
-		"name": "InsufficientBalance",
-		"type": "error"
-	},
-	{
 		"inputs": [
 			{
 				"internalType": "address",
@@ -68,15 +43,14 @@ const escrowABI = [
 	},
 	{
 		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "by",
-				"type": "address"
-			}
-		],
-		"name": "CancelApproved",
+		"inputs": [],
+		"name": "CancelApprovedByPayee",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [],
+		"name": "CancelApprovedByPayer",
 		"type": "event"
 	},
 	{
@@ -85,7 +59,7 @@ const escrowABI = [
 			{
 				"indexed": false,
 				"internalType": "uint256",
-				"name": "amount",
+				"name": "amountReturned",
 				"type": "uint256"
 			}
 		],
@@ -96,45 +70,13 @@ const escrowABI = [
 		"anonymous": false,
 		"inputs": [
 			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "by",
-				"type": "address"
-			}
-		],
-		"name": "ContractPaused",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "by",
-				"type": "address"
-			}
-		],
-		"name": "ContractUnpaused",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "milestone",
-				"type": "uint256"
-			},
-			{
 				"indexed": false,
 				"internalType": "uint256",
 				"name": "amount",
 				"type": "uint256"
 			}
 		],
-		"name": "DeadlineClaimed",
+		"name": "ClaimedAfterDeadline",
 		"type": "event"
 	},
 	{
@@ -143,19 +85,39 @@ const escrowABI = [
 			{
 				"indexed": true,
 				"internalType": "address",
-				"name": "from",
+				"name": "payee",
+				"type": "address"
+			}
+		],
+		"name": "ConfirmedPayee",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "payer",
+				"type": "address"
+			}
+		],
+		"name": "ConfirmedPayer",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "payer",
 				"type": "address"
 			},
 			{
 				"indexed": false,
 				"internalType": "uint256",
 				"name": "amount",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "deadline",
 				"type": "uint256"
 			}
 		],
@@ -167,46 +129,8 @@ const escrowABI = [
 		"inputs": [
 			{
 				"indexed": true,
-				"internalType": "address",
-				"name": "token",
-				"type": "address"
-			},
-			{
-				"indexed": false,
 				"internalType": "uint256",
-				"name": "amount",
-				"type": "uint256"
-			}
-		],
-		"name": "DustSwept",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "milestone",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "string",
-				"name": "reason",
-				"type": "string"
-			}
-		],
-		"name": "MilestoneFailed",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "milestone",
+				"name": "index",
 				"type": "uint256"
 			},
 			{
@@ -225,7 +149,7 @@ const escrowABI = [
 			{
 				"indexed": true,
 				"internalType": "address",
-				"name": "to",
+				"name": "payer",
 				"type": "address"
 			},
 			{
@@ -233,26 +157,14 @@ const escrowABI = [
 				"internalType": "uint256",
 				"name": "amount",
 				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "string",
-				"name": "reason",
-				"type": "string"
 			}
 		],
-		"name": "RefundFailed",
+		"name": "PlatformFeePaid",
 		"type": "event"
 	},
 	{
 		"anonymous": false,
 		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "to",
-				"type": "address"
-			},
 			{
 				"indexed": false,
 				"internalType": "uint256",
@@ -267,24 +179,43 @@ const escrowABI = [
 		"anonymous": false,
 		"inputs": [
 			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "by",
-				"type": "address"
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "amountToPayee",
+				"type": "uint256"
 			},
 			{
 				"indexed": false,
 				"internalType": "uint256",
-				"name": "milestone",
+				"name": "amountToPayer",
 				"type": "uint256"
 			}
 		],
-		"name": "ReleaseApproval",
+		"name": "Settled",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [],
+		"name": "SettlementApproved",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "SettlementProposed",
 		"type": "event"
 	},
 	{
 		"inputs": [],
-		"name": "CANCEL_DEADLINE",
+		"name": "CANCEL_WINDOW",
 		"outputs": [
 			{
 				"internalType": "uint256",
@@ -297,7 +228,20 @@ const escrowABI = [
 	},
 	{
 		"inputs": [],
-		"name": "SWEEP_DELAY",
+		"name": "PLATFORM_ADDRESS",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "PLATFORM_FEE",
 		"outputs": [
 			{
 				"internalType": "uint256",
@@ -310,7 +254,7 @@ const escrowABI = [
 	},
 	{
 		"inputs": [],
-		"name": "amount",
+		"name": "SETTLEMENT_WINDOW",
 		"outputs": [
 			{
 				"internalType": "uint256",
@@ -330,7 +274,40 @@ const escrowABI = [
 	},
 	{
 		"inputs": [],
-		"name": "cancelApprovalTime",
+		"name": "approveSettlement",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "cancelApprovedPayee",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "cancelApprovedPayer",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "cancelApprovedTimePayee",
 		"outputs": [
 			{
 				"internalType": "uint256",
@@ -343,25 +320,12 @@ const escrowABI = [
 	},
 	{
 		"inputs": [],
-		"name": "cancelPayeeApproved",
+		"name": "cancelApprovedTimePayer",
 		"outputs": [
 			{
-				"internalType": "bool",
+				"internalType": "uint256",
 				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "cancelPayerApproved",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
+				"type": "uint256"
 			}
 		],
 		"stateMutability": "view",
@@ -372,6 +336,46 @@ const escrowABI = [
 		"name": "claimAfterDeadline",
 		"outputs": [],
 		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "confirmPayee",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "confirmPayer",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "confirmedPayee",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "confirmedPayer",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
 		"type": "function"
 	},
 	{
@@ -415,108 +419,94 @@ const escrowABI = [
 	},
 	{
 		"inputs": [],
-		"name": "getContractStatus",
+		"name": "getBalance",
 		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getContractInfo",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "_payer",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "_payee",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_totalAmount",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_deadline",
+				"type": "uint256"
+			},
 			{
 				"internalType": "bool",
 				"name": "_deposited",
 				"type": "bool"
 			},
 			{
+				"internalType": "bool",
+				"name": "_platformFeePaid",
+				"type": "bool"
+			},
+			{
+				"internalType": "bool",
+				"name": "_confirmedPayer",
+				"type": "bool"
+			},
+			{
+				"internalType": "bool",
+				"name": "_confirmedPayee",
+				"type": "bool"
+			},
+			{
 				"internalType": "uint256",
-				"name": "_totalMilestones",
+				"name": "_balance",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "index",
+				"type": "uint256"
+			}
+		],
+		"name": "getMilestoneInfo",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "percentage",
 				"type": "uint256"
 			},
 			{
-				"internalType": "bool[]",
-				"name": "_milestoneExecuted",
-				"type": "bool[]"
-			},
-			{
 				"internalType": "uint256",
-				"name": "_remainingAmount",
+				"name": "amount",
 				"type": "uint256"
 			},
 			{
 				"internalType": "bool",
-				"name": "_paused",
+				"name": "released",
 				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_milestoneIndex",
-				"type": "uint256"
-			}
-		],
-		"name": "getMilestoneAmount",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"name": "milestoneAmounts",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"name": "milestoneExecuted",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"name": "milestonePercentages",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
 			}
 		],
 		"stateMutability": "view",
@@ -524,22 +514,51 @@ const escrowABI = [
 	},
 	{
 		"inputs": [],
-		"name": "pause",
+		"name": "getTotalMilestones",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "milestones",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "percentage",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bool",
+				"name": "released",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "payPlatformFee",
 		"outputs": [],
 		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "paused",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
 		"type": "function"
 	},
 	{
@@ -547,7 +566,7 @@ const escrowABI = [
 		"name": "payee",
 		"outputs": [
 			{
-				"internalType": "address payable",
+				"internalType": "address",
 				"name": "",
 				"type": "address"
 			}
@@ -570,6 +589,32 @@ const escrowABI = [
 	},
 	{
 		"inputs": [],
+		"name": "platformFeePaid",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "proposeSettlement",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
 		"name": "refund",
 		"outputs": [],
 		"stateMutability": "nonpayable",
@@ -579,7 +624,7 @@ const escrowABI = [
 		"inputs": [
 			{
 				"internalType": "uint256",
-				"name": "_milestoneIndex",
+				"name": "index",
 				"type": "uint256"
 			}
 		],
@@ -590,7 +635,7 @@ const escrowABI = [
 	},
 	{
 		"inputs": [],
-		"name": "remaining",
+		"name": "settlementAmount",
 		"outputs": [
 			{
 				"internalType": "uint256",
@@ -602,50 +647,21 @@ const escrowABI = [
 		"type": "function"
 	},
 	{
-		"inputs": [
+		"inputs": [],
+		"name": "settlementApproved",
+		"outputs": [
 			{
-				"internalType": "address",
-				"name": "_token",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
+				"internalType": "bool",
 				"name": "",
-				"type": "uint256"
+				"type": "bool"
 			}
 		],
-		"name": "requestSweep",
-		"outputs": [],
-		"stateMutability": "nonpayable",
+		"stateMutability": "view",
 		"type": "function"
 	},
 	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_token",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_amount",
-				"type": "uint256"
-			}
-		],
-		"name": "sweepDust",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"name": "sweepRequestTime",
+		"inputs": [],
+		"name": "settlementProposedTime",
 		"outputs": [
 			{
 				"internalType": "uint256",
@@ -671,7 +687,7 @@ const escrowABI = [
 	},
 	{
 		"inputs": [],
-		"name": "totalMilestones",
+		"name": "totalAmount",
 		"outputs": [
 			{
 				"internalType": "uint256",
@@ -681,17 +697,6 @@ const escrowABI = [
 		],
 		"stateMutability": "view",
 		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "unpause",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"stateMutability": "payable",
-		"type": "receive"
 	}
 ];
 
@@ -706,6 +711,6 @@ window.escrowABI = escrowABI;
 window.USDC_TOKEN_ADDRESS = USDC_TOKEN_ADDRESS;
 window.ESCROW_CONTRACT_ADDRESS = ESCROW_CONTRACT_ADDRESS;
 
-console.log('✅ ABI do EscrowUSDC_Dynamic_Production.sol carregada com sucesso!');
+console.log('✅ ABI do Novo_Escrow.sol carregada com sucesso!');
 console.log('📋 Total de funções:', escrowABI.filter(item => item.type === 'function').length);
 console.log('🎯 Funções principais:', escrowABI.filter(item => item.type === 'function').map(f => f.name));

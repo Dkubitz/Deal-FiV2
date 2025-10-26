@@ -144,6 +144,10 @@ class NavigationService {
      * Renderiza a página inicial
      */
     renderHomePage(container) {
+        // Parar polling ao sair da página de gerenciamento
+        if (window.contractPollingService) {
+            window.contractPollingService.stopPolling();
+        }
         // Sempre renderizar com card de notificação inicialmente
         container.innerHTML = `
             <div class="home-content">
@@ -211,12 +215,42 @@ class NavigationService {
         
         if (walletNotice && quickActions) {
             if (isWalletConnected) {
-                walletNotice.style.display = 'none';
-                quickActions.style.display = 'flex';
+                // Transição suave: esconder notificação primeiro
+                walletNotice.style.transition = 'opacity 0.2s ease-out';
+                walletNotice.style.opacity = '0';
+                
+                setTimeout(() => {
+                    walletNotice.style.display = 'none';
+                    // Mostrar botões após notificação desaparecer
+                    quickActions.style.display = 'flex';
+                    quickActions.style.transition = 'opacity 0.2s ease-in';
+                    quickActions.style.opacity = '0';
+                    
+                    // Pequeno delay para evitar tremilico
+                    requestAnimationFrame(() => {
+                        quickActions.style.opacity = '1';
+                    });
+                }, 200);
+                
                 console.log('✅ Interface atualizada: carteira conectada - mostrando botões');
             } else {
-                walletNotice.style.display = 'flex';
-                quickActions.style.display = 'none';
+                // Transição suave: esconder botões primeiro
+                quickActions.style.transition = 'opacity 0.2s ease-out';
+                quickActions.style.opacity = '0';
+                
+                setTimeout(() => {
+                    quickActions.style.display = 'none';
+                    // Mostrar notificação após botões desaparecerem
+                    walletNotice.style.display = 'flex';
+                    walletNotice.style.transition = 'opacity 0.2s ease-in';
+                    walletNotice.style.opacity = '0';
+                    
+                    // Pequeno delay para evitar tremilico
+                    requestAnimationFrame(() => {
+                        walletNotice.style.opacity = '1';
+                    });
+                }, 200);
+                
                 console.log('⚠️ Interface atualizada: carteira desconectada - mostrando notificação');
             }
         }
@@ -246,6 +280,10 @@ class NavigationService {
      * Renderiza a página de criação de contratos
      */
     renderCreatePage(container) {
+        // Parar polling ao sair da página de gerenciamento
+        if (window.contractPollingService) {
+            window.contractPollingService.stopPolling();
+        }
         // Usar o formulário avançado do create-contract-form.js
         container.innerHTML = window.createContractForm.render();
         
@@ -255,34 +293,145 @@ class NavigationService {
 
     /**
      * Renderiza a página de gerenciamento de contratos
+     * ATUALIZADO: Usa sistema de estados
      */
     async renderManagePage(container) {
         container.innerHTML = `
-            <div class="manage-contracts-page">
-                <!-- Botão Voltar no canto superior esquerdo -->
-                <div class="top-back-button">
+            <div class="manage-contracts-page" style="padding: 20px; max-width: 1200px; margin: 0 auto;">
+                <!-- Barra de Ações no Topo -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
                     <button class="back-btn-top" onclick="window.navigationService.restoreHomePage()">
                         ← Voltar
                     </button>
+                    
+                    <button class="back-btn-top" 
+                        onclick="window.realContractService.showAddContractModal('${window.walletService?.account || ''}')" 
+                        onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 25px rgba(102,126,234,0.4)';"
+                        onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 15px rgba(102,126,234,0.3)';">
+                        🔍 Buscar Contrato
+                    </button>
                 </div>
                 
-                
-                <div class="contracts-list" id="contractsList">
-                    <!-- Contratos reais serão renderizados aqui -->
-                    <div class="loading-message">
-                        <p>🔄 Carregando seus contratos...</p>
-                        </div>
-                        </div>
-                        </div>
+                <!-- Container para UI baseada em estado -->
+                <div id="state-based-container">
+                    <div style="text-align: center; padding: 60px 20px;">
+                        <p style="font-size: 18px; color: #666;">🔄 Carregando estado do contrato...</p>
+                    </div>
+                </div>
+            </div>
         `;
 
-        // Carregar contratos reais APENAS quando entrar na página de gerenciamento
-        await this.loadRealContractsForManage();
-        console.log('📋 Página de gerenciamento carregada com contratos reais');
+        // Carregar e renderizar usando sistema de estados
+        await this.loadStateBasedUI();
+        console.log('📋 Página de gerenciamento carregada com sistema de estados');
     }
 
     /**
-     * Carrega contratos reais para a página de gerenciamento
+     * Carrega UI baseada em estado (NOVO SISTEMA)
+     */
+    async loadStateBasedUI() {
+        try {
+            console.log('🔄 Carregando UI baseada em estado...');
+            
+            const container = document.getElementById('state-based-container');
+            if (!container) {
+                console.error('❌ Container state-based-container não encontrado');
+                return;
+            }
+            
+            // Verificar se há contrato conectado
+            if (!window.realContractService || !window.realContractService.contract) {
+                console.log('⚠️ Nenhum contrato encontrado');
+                container.innerHTML = `
+                    <div class="no-contracts">
+                        <div class="no-contracts-icon">📋</div>
+                        <h3>Nenhum contrato encontrado</h3>
+                        <p>Conecte sua carteira ou adicione um contrato existente.</p>
+                        <div class="no-contracts-actions">
+                            <button class="btn-primary" onclick="window.realContractService.showAddContractModal('${window.walletService?.account || ''}')">
+                                🔗 Conectar Contrato Existente
+                            </button>
+                            <button class="btn-secondary" onclick="window.navigationService.navigateTo('create')">
+                                ➕ Criar Novo Contrato
+                            </button>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Obter dados do contrato
+            console.log('📍 [loadStateBasedUI] Contrato ativo:', window.realContractService.contractAddress);
+            
+            const contractData = await window.realContractService.getContractDetails();
+            const userAddress = window.walletService?.account || '';
+            
+            console.log('📊 [loadStateBasedUI] Dados do contrato:', contractData);
+            console.log('👤 [loadStateBasedUI] Usuário:', userAddress);
+            console.log('💰 [loadStateBasedUI] Valor do contrato:', contractData.amount, 'USDC');
+            
+            // Determinar estado usando ContractStateService
+            const state = window.contractStateService.determineState(
+                contractData,
+                userAddress
+            );
+            
+            console.log('✅ Estado determinado:', state);
+            
+            // Renderizar UI usando StateBasedUIComponent
+            window.stateBasedUIComponent.render(state, contractData);
+            
+            // Iniciar polling para atualizações automáticas
+            if (window.contractPollingService) {
+                window.contractPollingService.startPolling();
+            }
+            
+        } catch (error) {
+            console.error('❌ Erro ao carregar UI baseada em estado:', error);
+            
+            const container = document.getElementById('state-based-container');
+            if (container) {
+                container.innerHTML = `
+                    <div class="error-message" style="
+                        text-align: center;
+                        padding: 60px 20px;
+                        background: rgba(239,68,68,0.1);
+                        border: 2px solid rgba(239,68,68,0.3);
+                        border-radius: 20px;
+                        margin: 20px;
+                    ">
+                        <div style="font-size: 48px; margin-bottom: 20px;">❌</div>
+                        <h3 style="color: #ef4444; margin-bottom: 15px;">Erro ao Carregar</h3>
+                        <p style="color: #666; margin-bottom: 25px;">${error.message}</p>
+                        <button class="btn-primary" onclick="window.navigationService.loadStateBasedUI()">
+                            🔄 Tentar Novamente
+                        </button>
+                    </div>
+                `;
+            }
+        }
+    }
+    
+    /**
+     * Recarrega a página atual (usado após ações)
+     */
+    async refreshCurrentPage() {
+        console.log('🔄 Recarregando página atual:', this.currentPage);
+        
+        if (this.currentPage === 'manage') {
+            // Verificar se container existe antes de atualizar
+            const container = document.getElementById('state-based-container');
+            if (container) {
+                await this.loadStateBasedUI();
+            } else {
+                console.warn('⚠️ Container ainda não existe, ignorando refresh');
+            }
+        }
+    }
+    
+    /**
+     * MÉTODO ANTIGO - Mantido por compatibilidade
+     * @deprecated Use loadStateBasedUI() em vez disso
      */
     async loadRealContractsForManage() {
         try {
@@ -324,7 +473,67 @@ class NavigationService {
                 let statusText = '';
                 let statusColor = '';
                 
-                if (!contractData.deposited) {
+                // Debug: Verificar estado do contrato
+                console.log('🔍 Estado do contrato para renderização:', {
+                    platformFeePaid: contractData.platformFeePaid,
+                    confirmedPayer: contractData.confirmedPayer,
+                    confirmedPayee: contractData.confirmedPayee,
+                    deposited: contractData.deposited,
+                    isPayer: isPayer,
+                    isPayee: isPayee
+                });
+                
+                // Verificar se taxa de plataforma foi paga
+                if (!contractData.platformFeePaid) {
+                    statusText = '⚠️ Taxa de Plataforma Pendente';
+                    statusColor = '#ef4444';
+                    
+                    actionsHTML = `
+                        <button class="btn-primary" onclick="window.navigationService.payPlatformFee()">
+                            💳 Pagar Taxa (1 USDC)
+                        </button>
+                    `;
+                }
+                // Verificar se confirmações estão pendentes
+                else if (!contractData.confirmedPayer && isPayer) {
+                    statusText = '⏳ Aguardando Confirmação do Payer';
+                    statusColor = '#f59e0b';
+                    
+                    actionsHTML = `
+                        <button class="btn-primary" onclick="window.navigationService.confirmPayer()">
+                            ✅ Confirmar Payer
+                        </button>
+                    `;
+                }
+                else if (!contractData.confirmedPayee && isPayee) {
+                    statusText = '⏳ Aguardando Confirmação do Payee';
+                    statusColor = '#f59e0b';
+                    
+                    actionsHTML = `
+                        <button class="btn-primary" onclick="window.navigationService.confirmPayee()">
+                            ✅ Confirmar Payee
+                        </button>
+                    `;
+                }
+                else if (!contractData.confirmedPayer || !contractData.confirmedPayee) {
+                    // Mostrar status de confirmação pendente para qualquer usuário
+                    if (!contractData.confirmedPayer && !contractData.confirmedPayee) {
+                        statusText = '⏳ Aguardando Confirmações (Payer e Payee)';
+                    } else if (!contractData.confirmedPayer) {
+                        statusText = '⏳ Aguardando Confirmação do Payer';
+                    } else if (!contractData.confirmedPayee) {
+                        statusText = '⏳ Aguardando Confirmação do Payee';
+                    }
+                    statusColor = '#f59e0b';
+                    
+                    actionsHTML = `
+                        <button class="btn-secondary" onclick="window.navigationService.checkStatus()">
+                            📋 Verificar Status
+                        </button>
+                    `;
+                }
+                // Verificar se depósito está pendente
+                else if (!contractData.deposited) {
                     statusText = '⏳ Aguardando Depósito';
                     statusColor = '#f59e0b';
                     
@@ -342,18 +551,28 @@ class NavigationService {
                         `;
                     }
                 } else {
-                    statusText = '💰 Contrato Ativo';
+                    statusText = 'Contrato Ativo';
                     statusColor = '#10b981';
                     
                     if (isPayer) {
                         // Botões específicos para PAGADOR
                         actionsHTML = '';
                         
+                        // Verificar se algum marco foi liberado
+                        const firstMilestoneReleased = contractData.milestoneInfo && 
+                                                       contractData.milestoneInfo.length > 0 && 
+                                                       contractData.milestoneInfo[0].released;
+                        
+                        // Verificar se prazo venceu
+                        const deadlinePassed = contractData.deadline && new Date() > new Date(contractData.deadline);
+                        
                         // Verificar quais marcos ainda não foram executados
                         const pendingMilestones = [];
-                        for (let i = 0; i < contractData.milestoneExecuted.length; i++) {
-                            if (!contractData.milestoneExecuted[i]) {
-                                pendingMilestones.push(i);
+                        if (contractData.milestoneInfo && contractData.milestoneInfo.length > 0) {
+                            for (let i = 0; i < contractData.milestoneInfo.length; i++) {
+                                if (!contractData.milestoneInfo[i].released) {
+                                    pendingMilestones.push(i);
+                                }
                             }
                         }
                         
@@ -361,35 +580,58 @@ class NavigationService {
                         if (pendingMilestones.length > 0) {
                             pendingMilestones.forEach(milestoneIndex => {
                                 actionsHTML += `
-                                    <button class="btn-primary" onclick="window.navigationService.approveMilestone(${milestoneIndex})">
-                                        ✅ Aprovar Marco ${milestoneIndex + 1}
+                                    <button class="btn-primary" onclick="window.navigationService.releaseMilestone(${milestoneIndex})">
+                                        ✅ Liberar Marco ${milestoneIndex + 1}
                                     </button>
                                 `;
                             });
                         } else {
                             actionsHTML += `
                                 <div class="milestone-status">
-                                    <span class="status-text">✅ Todos os marcos foram executados</span>
+                                    <span class="status-text">✅ Todos os marcos foram liberados</span>
                                 </div>
                             `;
                         }
                         
+                        // Refund: Apenas ANTES do primeiro marco ser liberado
+                        if (!firstMilestoneReleased) {
+                            actionsHTML += `
+                                <button class="btn-danger" onclick="window.navigationService.refundContract()">
+                                    🔄 Refund (Recuperar 100%)
+                                </button>
+                            `;
+                        }
+                        
+                        // Propor Settlement: Sempre disponível
+                        actionsHTML += `
+                            <button class="btn-info" onclick="window.navigationService.proposeSettlement()">
+                                🤝 Propor Acordo (Settlement)
+                            </button>
+                        `;
+                        
+                        // Aprovar Cancelamento: Sempre disponível
                         actionsHTML += `
                             <button class="btn-warning" onclick="window.navigationService.approveCancel()">
                                 ❌ Aprovar Cancelamento
                             </button>
-                            <button class="btn-danger" onclick="window.navigationService.claimAfterDeadline()">
-                                ⏰ Reclamar Após Prazo
-                            </button>
                         `;
+                        
+                        // Reclamar Após Prazo: Apenas APÓS deadline
+                        if (deadlinePassed) {
+                            actionsHTML += `
+                                <button class="btn-danger" onclick="window.navigationService.claimAfterDeadline()">
+                                    ⏰ Reclamar Após Prazo
+                                </button>
+                            `;
+                        }
                     } else if (isPayee) {
                         // Botões específicos para RECEBEDOR
                         actionsHTML = `
                             <button class="btn-warning" onclick="window.navigationService.approveCancel()">
                                 ❌ Aprovar Cancelamento
                             </button>
-                            <button class="btn-danger" onclick="window.navigationService.refundContract()">
-                                🔄 Fazer Refund
+                            <button class="btn-info" onclick="window.navigationService.approveSettlement()">
+                                ✅ Aprovar Acordo (Settlement)
                             </button>
                         `;
                     }
@@ -398,7 +640,7 @@ class NavigationService {
                 // Adicionar botão para ver detalhes
                 actionsHTML += `
                     <button class="btn-secondary" onclick="window.navigationService.viewContractDetails()">
-                        🔍 Ver Detalhes
+                        Ver Detalhes
                     </button>
                 `;
                 
@@ -476,7 +718,7 @@ class NavigationService {
                         <div class="error-icon">❌</div>
                         <h3>Erro ao carregar contratos</h3>
                         <p>${error.message}</p>
-                        <button class="btn-primary" onclick="window.navigationService.loadRealContractsForManage()">
+                        <button class="btn-primary" onclick="window.navigationService.loadStateBasedUI()">
                             🔄 Tentar Novamente
                         </button>
                     </div>
@@ -491,6 +733,185 @@ class NavigationService {
     /**
      * Ações do contrato
      */
+    
+    // Função para pagar taxa de plataforma
+    async payPlatformFee() {
+        try {
+            console.log('💳 Pagando taxa de plataforma...');
+            
+            const success = await window.realContractService.payPlatformFee();
+            if (success) {
+                alert('✅ Taxa de plataforma paga com sucesso!');
+                
+                // Aguardar propagação da transação
+                console.log('⏳ Aguardando propagação da transação...');
+                await new Promise(resolve => setTimeout(resolve, 3000));
+                
+                // Recarregar interface usando novo sistema
+                await this.refreshCurrentPage();
+            } else {
+                alert('❌ Erro ao pagar taxa de plataforma');
+            }
+        } catch (error) {
+            console.error('❌ Erro ao pagar taxa:', error);
+            alert('❌ Erro ao pagar taxa: ' + error.message);
+        }
+    }
+
+    // Função para confirmar identidade do payer
+    async confirmPayer() {
+        try {
+            console.log('✅ Confirmando identidade do payer...');
+            
+            await window.realContractService.confirmPayer();
+            alert('✅ Identidade do payer confirmada!');
+            
+            // Aguardar um pouco para a transação ser propagada
+            console.log('⏳ Aguardando propagação da transação...');
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            
+            // Recarregar contratos para atualizar interface
+            await this.loadRealContracts();
+        } catch (error) {
+            console.error('❌ Erro ao confirmar payer:', error);
+            alert('❌ Erro ao confirmar payer: ' + error.message);
+        }
+    }
+
+    // Função para confirmar identidade do payee
+    async confirmPayee() {
+        try {
+            console.log('✅ Confirmando identidade do payee...');
+            
+            await window.realContractService.confirmPayee();
+            alert('✅ Identidade do payee confirmada!');
+            
+            // Aguardar propagação da transação
+            console.log('⏳ Aguardando propagação da transação...');
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            
+            // Recarregar contratos para atualizar interface
+            await this.loadRealContracts();
+        } catch (error) {
+            console.error('❌ Erro ao confirmar payee:', error);
+            alert('❌ Erro ao confirmar payee: ' + error.message);
+        }
+    }
+
+    // Função para liberar marco
+    async releaseMilestone(milestoneIndex) {
+        try {
+            console.log(`✅ Liberando marco ${milestoneIndex}...`);
+            
+            await window.realContractService.releaseMilestone(milestoneIndex);
+            alert(`✅ Marco ${milestoneIndex + 1} liberado com sucesso!`);
+            
+            // Aguardar propagação
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            await this.loadRealContracts();
+        } catch (error) {
+            console.error('❌ Erro ao liberar marco:', error);
+            alert('❌ Erro ao liberar marco: ' + error.message);
+        }
+    }
+
+    // Função para propor settlement
+    async proposeSettlement() {
+        try {
+            console.log('🤝 Propondo settlement...');
+            
+            const amount = prompt('Digite o valor em USDC que deseja pagar ao payee (acordo parcial):');
+            if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
+                alert('❌ Valor inválido');
+                return;
+            }
+            
+            await window.realContractService.proposeSettlement(parseFloat(amount));
+            alert('✅ Settlement proposto com sucesso!');
+            
+            // Aguardar propagação
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            await this.loadRealContracts();
+        } catch (error) {
+            console.error('❌ Erro ao propor settlement:', error);
+            alert('❌ Erro ao propor settlement: ' + error.message);
+        }
+    }
+
+    // Função para aprovar settlement (payee)
+    async approveSettlement() {
+        try {
+            console.log('✅ Aprovando settlement...');
+            
+            await window.realContractService.approveSettlement();
+            alert('✅ Settlement aprovado com sucesso!');
+            
+            // Aguardar propagação
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            await this.loadRealContracts();
+        } catch (error) {
+            console.error('❌ Erro ao aprovar settlement:', error);
+            alert('❌ Erro ao aprovar settlement: ' + error.message);
+        }
+    }
+
+    // Função para fazer refund
+    async refundContract() {
+        try {
+            console.log('🔄 Fazendo refund...');
+            
+            const confirm = window.confirm('Tem certeza que deseja fazer refund? Você recuperará 100% do valor depositado.');
+            if (!confirm) return;
+            
+            await window.realContractService.refund();
+            alert('✅ Refund realizado com sucesso!');
+            
+            // Aguardar propagação
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            await this.loadRealContracts();
+        } catch (error) {
+            console.error('❌ Erro ao fazer refund:', error);
+            alert('❌ Erro ao fazer refund: ' + error.message);
+        }
+    }
+
+    // Função para aprovar cancelamento
+    async approveCancel() {
+        try {
+            console.log('❌ Aprovando cancelamento...');
+            
+            await window.realContractService.approveCancel();
+            alert('✅ Cancelamento aprovado! Se a outra parte também aprovar dentro de 1h, o contrato será cancelado.');
+            
+            // Aguardar propagação
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            await this.loadRealContracts();
+        } catch (error) {
+            console.error('❌ Erro ao aprovar cancelamento:', error);
+            alert('❌ Erro ao aprovar cancelamento: ' + error.message);
+        }
+    }
+
+    // Função para reclamar após prazo
+    async claimAfterDeadline() {
+        try {
+            console.log('⏰ Reclamando após prazo...');
+            
+            const confirm = window.confirm('Tem certeza que deseja reclamar o saldo restante após o prazo?');
+            if (!confirm) return;
+            
+            await window.realContractService.claimAfterDeadline();
+            alert('✅ Saldo reclamado com sucesso!');
+            
+            // Aguardar propagação
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            await this.loadRealContracts();
+        } catch (error) {
+            console.error('❌ Erro ao reclamar após prazo:', error);
+            alert('❌ Erro ao reclamar após prazo: ' + error.message);
+        }
+    }
+
     async depositContract() {
         try {
             console.log('💰 Iniciando depósito no contrato...');
@@ -559,8 +980,8 @@ class NavigationService {
             
             if (success) {
                 alert('✅ Depósito realizado com sucesso!');
-                // Recarregar interface
-                await this.loadRealContractsForManage();
+                // Recarregar interface usando novo sistema
+                await this.refreshCurrentPage();
             } else {
                 alert('❌ Erro ao realizar depósito');
             }
@@ -669,8 +1090,8 @@ class NavigationService {
             console.log(`✅ Aprovando marco ${milestoneIndex}...`);
             await window.realContractService.releaseMilestone(milestoneIndex);
             alert(`✅ Marco ${milestoneIndex + 1} aprovado com sucesso!`);
-            // Recarregar página
-            await this.loadRealContractsForManage();
+            // Recarregar página usando novo sistema
+            await this.refreshCurrentPage();
         } catch (error) {
             console.error('❌ Erro ao aprovar marco:', error);
             
@@ -688,8 +1109,8 @@ class NavigationService {
             console.log('❌ Aprovando cancelamento...');
             await window.realContractService.approveCancel();
             alert('✅ Cancelamento aprovado!');
-            // Recarregar página
-            await this.loadRealContractsForManage();
+            // Recarregar página usando novo sistema
+            await this.refreshCurrentPage();
         } catch (error) {
             console.error('❌ Erro ao aprovar cancelamento:', error);
             alert('❌ Erro ao aprovar cancelamento: ' + error.message);
@@ -701,8 +1122,8 @@ class NavigationService {
             console.log('🔄 Fazendo refund...');
             await window.realContractService.refund();
             alert('✅ Refund executado com sucesso!');
-            // Recarregar página
-            await this.loadRealContractsForManage();
+            // Recarregar página usando novo sistema
+            await this.refreshCurrentPage();
         } catch (error) {
             console.error('❌ Erro ao fazer refund:', error);
             alert('❌ Erro ao fazer refund: ' + error.message);
@@ -781,8 +1202,8 @@ class NavigationService {
             console.log('⏰ Reclamando após deadline...');
             await window.realContractService.claimAfterDeadline();
             alert('✅ Reclamação executada com sucesso!');
-            // Recarregar página
-            await this.loadRealContractsForManage();
+            // Recarregar página usando novo sistema
+            await this.refreshCurrentPage();
         } catch (error) {
             console.error('❌ Erro ao reclamar:', error);
             alert('❌ Erro ao reclamar: ' + error.message);
@@ -809,7 +1230,7 @@ class NavigationService {
                   `• Depositado: ${contractData.deposited ? 'Sim' : 'Não'}\n` +
                   `• Saldo Restante: ${contractData.remainingAmount} USDC\n` +
                   `• Token: USDC (Polygon)\n\n` +
-                  `👤 Seu Papel: ${isPayer ? 'PAGADOR' : isPayee ? 'RECEBEDOR' : 'OBSERVADOR'}`);
+                  `Seu Papel: ${isPayer ? 'PAGADOR' : isPayee ? 'RECEBEDOR' : 'OBSERVADOR'}`);
         } catch (error) {
             console.error('❌ Erro ao mostrar detalhes:', error);
             alert('❌ Erro ao mostrar detalhes: ' + error.message);
@@ -1057,151 +1478,133 @@ class NavigationService {
             <div class="help-modal-content">
                 <div class="help-modal-header">
                     <h2>📚 Como Funciona o Deal-Fi</h2>
-                    <button class="close-help-btn" onclick="this.closest('.help-modal-overlay').remove()">×</button>
+                    <button class="close-help-btn" onclick="window.navigationService.closeHelpModal(this.closest('.help-modal-overlay'))">×</button>
                 </div>
                 
                 <div class="help-modal-body">
                     <div class="help-section">
-                        <h3>🔒 O que é Escrow?</h3>
-                        <p>Escrow é um sistema de pagamento seguro onde o dinheiro fica "em custódia" até que as condições do contrato sejam atendidas. É como um intermediário confiável que garante que ambas as partes cumpram seus compromissos.</p>
+                        <h3>🚀 Fluxo Completo do Deal-Fi</h3>
+                        <p>Este é o fluxo exato que o smart contract segue, desde o deploy até o encerramento:</p>
                     </div>
                     
                     <div class="help-section">
-                        <h3>💡 Como Funciona?</h3>
-                        <ol>
-                            <li><strong>Pagador</strong> cria um contrato e define marcos/entregas</li>
-                            <li><strong>Pagador</strong> deposita USDC no contrato inteligente</li>
-                            <li><strong>Recebedor</strong> entrega o trabalho conforme os marcos</li>
-                            <li><strong>Pagador</strong> aprova cada marco liberando o pagamento</li>
-                            <li><strong>Recebedor</strong> recebe os USDC automaticamente</li>
-                        </ol>
-                    </div>
-                    
-                    <div class="help-section">
-                        <h3>📝 Condições do Contrato</h3>
-                        <ul>
-                            <li><strong>Valor Mínimo:</strong> $1 USDC (antes era $10)</li>
-                            <li><strong>Marcos:</strong> 1 a 10 marcos por contrato</li>
-                            <li><strong>Percentuais:</strong> Personalizáveis (ex: 50%/50% ou 30%/70%)</li>
-                            <li><strong>Prazo:</strong> Definido pelo pagador (ex: 30 dias)</li>
-                            <li><strong>Token:</strong> USDC na rede Polygon (endereço: 0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359)</li>
-                            <li><strong>Rede:</strong> Polygon Mainnet (taxas baixas)</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="help-section">
-                        <h3>🎮 Botões de Ação Disponíveis</h3>
+                        <h3>1️⃣ FASE INICIAL: Deploy e Validações</h3>
+                        <p><strong>🚀 Deploy do Smart Contract</strong><br>
+                        Por Payer ou Payee com parâmetros: payer, payee, duration, token USDC, milestones array</p>
                         
-                        <h4>👤 Para o PAGADOR (criador do contrato):</h4>
+                        <p><strong>✓ Validações no Construtor:</strong></p>
                         <ul>
-                            <li><strong>🟣 "Depositar USDC":</strong> Faz o depósito inicial no contrato</li>
-                            <li><strong>🟣 "Aprovar Marco":</strong> Libera pagamento para marco aprovado</li>
-                            <li><strong>🟣 "Aprovar Cancelamento":</strong> Confirma cancelamento conjunto</li>
-                            <li><strong>🟣 "Reclamar Após Prazo":</strong> Recupera dinheiro se prazo expirar</li>
-                            <li><strong>🟣 "Ver Detalhes":</strong> Mostra informações completas do contrato</li>
+                            <li>Endereços válidos</li>
+                            <li>Percentuais somam 100%</li>
+                            <li>Máximo 10 marcos</li>
                         </ul>
+                        <p><strong>❌ Falha → Contrato não ativado</strong></p>
                         
-                        <h4>👤 Para o RECEBEDOR:</h4>
+                        <p><strong>⚙️ Contrato Ativo</strong><br>
+                        deadline = block.timestamp + duration<br>
+                        deposited = false, confirmedPayer = false, confirmedPayee = false</p>
+                    </div>
+                    
+                    <div class="help-section">
+                        <h3>2️⃣ FASE DE ATIVAÇÃO: Taxa e Confirmações</h3>
+                        <p><strong>💰 Taxa de Plataforma: 1 USDC</strong><br>
+                        Transferido por qualquer parte para: 0xC101e76Da55BC93438a955546E93D56312a3CF16<br>
+                        Evento: PlatformFeePaid</p>
+                        
+                        <p><strong>⏳ Aguardando Confirmações Mútuas</strong><br>
+                        Ambas as partes devem confirmar identidade:</p>
                         <ul>
-                            <li><strong>🟣 "Aprovar Cancelamento":</strong> Confirma cancelamento conjunto</li>
-                            <li><strong>🟣 "Fazer Refund":</strong> Devolve dinheiro para o pagador</li>
-                            <li><strong>🟣 "Ver Detalhes":</strong> Mostra informações completas do contrato</li>
+                            <li>Payer: confirmPayer() → confirmedPayer = true</li>
+                            <li>Payee: confirmPayee() → confirmedPayee = true</li>
                         </ul>
+                        <p><strong>❌ Falha → Allowance insuficiente, valor ≤0, já depositado</strong></p>
                         
-                        <p><strong>💡 Nota:</strong> Os botões são exibidos automaticamente baseado no seu papel no contrato!</p>
+                        <p><strong>🔓 Depósito Integral Permitido</strong><br>
+                        Payer: token.approve(address(this), amount)<br>
+                        Payer: deposit(amount)<br>
+                        <strong>✅ Sucesso → Depósito integral efetuado, garantia trancada</strong></p>
+                    </div>
+                    
+                    <div class="help-section">
+                        <h3>3️⃣ FASE DE EXECUÇÃO: Escolhas do Payer</h3>
+                        <p><strong>🎯 Escolha do Payer (Disponível SEMPRE)</strong><br>
+                        Antes e após deadline, o Payer pode escolher:</p>
                         
-                        <h4>⚙️ Estados do Contrato:</h4>
+                        <h4>📤 Opção 1: Liberar Marco</h4>
+                        <p><strong>releaseMilestone(index)</strong></p>
                         <ul>
-                            <li><strong>🟢 "Contrato Ativo":</strong> Funcionando normalmente</li>
-                            <li><strong>🟡 "Aguardando Depósito":</strong> Pagador ainda não depositou</li>
-                            <li><strong>🔴 "Prazo Expirado":</strong> Pagador pode reclamar dinheiro</li>
-                            <li><strong>⚫ "Cancelado":</strong> Contrato finalizado por acordo</li>
+                            <li>require msg.sender == payer</li>
+                            <li>require deposited == true</li>
+                            <li>SEM verificação de deadline</li>
+                        </ul>
+                        <p><strong>❌ Falha → Não sequencial, marco já executado, índice inválido</strong><br>
+                        <strong>✅ Sucesso → Transfer ao Payee, Evento: MilestoneReleased</strong></p>
+                        
+                        <h4>🚫 Opção 2: Cancel Bilateral</h4>
+                        <p><strong>approveCancel</strong></p>
+                        <ul>
+                            <li>require msg.sender == payer OR payee</li>
+                            <li>require deposited == true</li>
+                            <li>SEM verificação de deadline</li>
+                            <li>Registra timestamp da aprovação</li>
+                        </ul>
+                        <p><strong>⚠️ Janela 1h expirada → Contrato continua ativo</strong><br>
+                        <strong>✅ Sucesso → Devolve 100% saldo ao Payer, Evento: Cancelled</strong></p>
+                        
+                        <h4>↩️ Opção 3: Refund Unilateral</h4>
+                        <p><strong>refund</strong></p>
+                        <ul>
+                            <li>require msg.sender == payer</li>
+                            <li>require deposited == true</li>
+                        </ul>
+                        <p><strong>❌ Falha → Primeiro marco já executado</strong><br>
+                        <strong>✅ Sucesso → Devolve 100% ao Payer, Evento: Refunded</strong></p>
+                        
+                        <h4>⏰ Opção 4: Saque Pós-Prazo</h4>
+                        <p><strong>claimAfterDeadline</strong></p>
+                        <ul>
+                            <li>require msg.sender == payer</li>
+                            <li>require deposited == true</li>
+                            <li>require block.timestamp > deadline</li>
+                        </ul>
+                        <p><strong>❌ Falha → Não depositado ou prazo não expirado</strong><br>
+                        <strong>✅ Sucesso → Devolve saldo ao Payer, Evento: ClaimedAfterDeadline</strong></p>
+                    </div>
+                    
+                    <div class="help-section">
+                        <h3>4️⃣ FASE DE SETTLEMENT (Opcional)</h3>
+                        <p><strong>Se Cancel Bilateral for escolhido:</strong></p>
+                        <ul>
+                            <li>Payer: proposeSettlement(amount) → Registra timestamp</li>
+                            <li>Payee: approveSettlement (dentro de 1h)</li>
+                        </ul>
+                        <p><strong>✅ Sucesso → Acordo: Parte ao Payee, Resto ao Payer, Evento: Settled</strong><br>
+                        <strong>⚠️ Timeout → Cancelamento normal</strong></p>
+                    </div>
+                    
+                    <div class="help-section">
+                        <h3>5️⃣ FASE FINAL: Encerramento</h3>
+                        <p><strong>🎉 Fim: Execução Plena</strong><br>
+                        Contrato encerrado quando:</p>
+                        <ul>
+                            <li>Todos os marcos liberados</li>
+                            <li>Cancelamento bilateral executado</li>
+                            <li>Settlement aprovado</li>
+                            <li>Refund unilateral executado</li>
+                            <li>Saque pós-prazo executado</li>
                         </ul>
                     </div>
                     
                     <div class="help-section">
-                        <h3>⚡ Principais Funcionalidades</h3>
+                        <h3>⚠️ Fluxos de Invalidação</h3>
+                        <p><strong>❌ Fim: Nulidade Inicial</strong><br>
+                        Contrato não ativado quando:</p>
                         <ul>
-                            <li><strong>Marcos Dinâmicos:</strong> Defina quantos marcos quiser (1-10)</li>
-                            <li><strong>Percentuais Personalizados:</strong> 50%/50% ou 30%/70% etc.</li>
-                            <li><strong>Prazo de Segurança:</strong> Recupere seu dinheiro se o prazo expirar</li>
-                            <li><strong>Cancelamento Conjunto:</strong> Ambas as partes podem cancelar</li>
-                            <li><strong>Transparência Total:</strong> Tudo registrado na blockchain</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="help-section">
-                        <h3>🎯 Cenários Práticos de Uso</h3>
-                        
-                        <h4>📋 Cenário 1: Desenvolvimento de Software</h4>
-                        <ul>
-                            <li><strong>Marco 1 (30%):</strong> Layout e design aprovado</li>
-                            <li><strong>Marco 2 (50%):</strong> Funcionalidades principais prontas</li>
-                            <li><strong>Marco 3 (20%):</strong> Testes e entrega final</li>
-                        </ul>
-                        
-                        <h4>📋 Cenário 2: Serviços de Marketing</h4>
-                        <ul>
-                            <li><strong>Marco 1 (50%):</strong> Estratégia e planejamento</li>
-                            <li><strong>Marco 2 (50%):</strong> Execução e resultados</li>
-                        </ul>
-                        
-                        <h4>📋 Cenário 3: Freelancer Simples</h4>
-                        <ul>
-                            <li><strong>Marco 1 (100%):</strong> Trabalho completo entregue</li>
-                        </ul>
-                        
-                        <h4>⚠️ Casos de Emergência:</h4>
-                        <ul>
-                            <li><strong>Recebedor some:</strong> Pagador usa "Reclamar Após Prazo"</li>
-                            <li><strong>Problemas no projeto:</strong> Ambas as partes usam "Cancelamento"</li>
-                            <li><strong>Recebedor quer devolver:</strong> Usa "Fazer Refund"</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="help-section">
-                        <h3>🛡️ Proteções de Segurança</h3>
-                        <ul>
-                            <li><strong>Para o Pagador:</strong> Dinheiro só sai após aprovação dos marcos</li>
-                            <li><strong>Para o Recebedor:</strong> Trabalho aprovado = pagamento garantido</li>
-                            <li><strong>Prazo de Expiração:</strong> Recupere dinheiro se recebedor não cumprir</li>
-                            <li><strong>Contratos Inteligentes:</strong> Código imutável na blockchain</li>
-                            <li><strong>Sem Intermediários:</strong> Você controla totalmente o processo</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="help-section">
-                        <h3>💰 Custos e Taxas</h3>
-                        <ul>
-                            <li><strong>Criação do Contrato:</strong> Taxa de gás (POL) - ~$1-3</li>
-                            <li><strong>Depósito USDC:</strong> Taxa de gás (POL) - ~$0.50</li>
-                            <li><strong>Aprovação de Marcos:</strong> Taxa de gás (POL) - ~$0.50</li>
-                            <li><strong>Sem Taxas de Plataforma:</strong> 0% sobre o valor do contrato</li>
-                        </ul>
-                        <p><strong>💡 Dica:</strong> Mantenha sempre pelo menos 5-10 POL na carteira para cobrir todas as taxas de gás necessárias.</p>
-                    </div>
-                    
-                    <div class="help-section">
-                        <h3>🚀 Vantagens</h3>
-                        <ul>
-                            <li>✅ <strong>Segurança Máxima:</strong> Dinheiro protegido por smart contracts</li>
-                            <li>✅ <strong>Transparência:</strong> Todas as transações são públicas</li>
-                            <li>✅ <strong>Automação:</strong> Pagamentos automáticos após aprovação</li>
-                            <li>✅ <strong>Global:</strong> Funciona em qualquer lugar do mundo</li>
-                            <li>✅ <strong>Rápido:</strong> Pagamentos instantâneos na blockchain</li>
-                            <li>✅ <strong>Sem Bancos:</strong> Controle total do seu dinheiro</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="help-section">
-                        <h3>⚠️ Importante Saber</h3>
-                        <ul>
-                            <li>• Você precisa de uma carteira (MetaMask) e USDC</li>
-                            <li>• <strong>IMPORTANTE:</strong> Você precisa ter POL (Polygon) na carteira para pagar taxas de gás</li>
-                            <li>• Todas as transações são irreversíveis</li>
-                            <li>• Teste primeiro com valores pequenos</li>
-                            <li>• Mantenha suas chaves privadas seguras</li>
-                            <li>• O contrato funciona na rede Polygon</li>
+                            <li>Vício no construtor (endereços inválidos, % ≠100, máx 10 marcos)</li>
+                            <li>Allowance insuficiente, valor ≤0, já depositado, taxa não paga</li>
+                            <li>Não sequencial, marco já executado, índice inválido</li>
+                            <li>Primeiro marco já executado para refund</li>
+                            <li>Não depositado ou prazo não expirado para saque</li>
                         </ul>
                     </div>
                     
@@ -1211,29 +1614,15 @@ class NavigationService {
                             <li><strong>Smart Contract:</strong> EscrowUSDC_Dynamic_Production.sol</li>
                             <li><strong>Rede:</strong> Polygon Mainnet (Chain ID: 137)</li>
                             <li><strong>Token USDC:</strong> 0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359</li>
-                            <li><strong>Taxa de Cancelamento:</strong> 7 dias de espera após aprovação</li>
-                            <li><strong>Limpeza de Poeira:</strong> 7 dias de espera para sweep</li>
-                            <li><strong>Pausa de Emergência:</strong> Apenas pagador pode pausar</li>
-                            <li><strong>Reentrância:</strong> Protegido contra ataques</li>
-                            <li><strong>OpenZeppelin:</strong> Usa bibliotecas auditadas</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="help-section">
-                        <h3>📞 Suporte e Recursos</h3>
-                        <ul>
-                            <li><strong>📖 Documentação:</strong> Modal de ajuda sempre disponível</li>
-                            <li><strong>🔍 Transparência:</strong> Todas as transações são públicas</li>
-                            <li><strong>🛡️ Segurança:</strong> Código aberto e auditável</li>
-                            <li><strong>⚡ Velocidade:</strong> Transações em segundos na Polygon</li>
-                            <li><strong>💰 Economia:</strong> Taxas muito baixas comparado ao Ethereum</li>
-                            <li><strong>🌍 Global:</strong> Funciona em qualquer lugar do mundo</li>
+                            <li><strong>Taxa de Plataforma:</strong> 1 USDC para 0xC101e76Da55BC93438a955546E93D56312a3CF16</li>
+                            <li><strong>Janela de Cancelamento:</strong> 1 hora após primeira aprovação</li>
+                            <li><strong>Janela de Settlement:</strong> 1 hora após proposta</li>
                         </ul>
                     </div>
                 </div>
                 
                 <div class="help-modal-footer">
-                    <button class="btn-primary" onclick="this.closest('.help-modal-overlay').remove()">
+                    <button class="btn-primary" onclick="window.navigationService.closeHelpModal(this.closest('.help-modal-overlay'))">
                         Entendi! Vamos Começar
                     </button>
                 </div>
@@ -1241,6 +1630,18 @@ class NavigationService {
         `;
         
         document.body.appendChild(modal);
+    }
+
+    /**
+     * Fecha o modal de ajuda com transição suave
+     */
+    closeHelpModal(modal) {
+        if (modal) {
+            modal.classList.add('closing');
+            setTimeout(() => {
+                modal.remove();
+            }, 200); // Tempo da animação de fechamento
+        }
     }
     
     /**
@@ -1280,6 +1681,12 @@ class NavigationService {
                 if (window.summaryCardsComponent) {
                     const stats = await window.realContractService.getStats();
                     console.log('📊 Estatísticas atualizadas:', stats);
+                }
+                
+                // Re-renderizar a página de gerenciamento se estivermos nela
+                if (this.currentPage === 'manage') {
+                    console.log('🔄 Re-renderizando página de gerenciamento...');
+                    await this.loadStateBasedUI();
                 }
             }
         } catch (error) {

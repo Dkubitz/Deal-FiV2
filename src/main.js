@@ -41,7 +41,7 @@ class EscrowApp {
     }
 
     checkServices() {
-        const requiredServices = ['walletService', 'contractService'];
+        const requiredServices = ['walletService'];
         const missingServices = requiredServices.filter(service => !window[service]);
         
         if (missingServices.length > 0) {
@@ -56,8 +56,7 @@ class EscrowApp {
         const componentOrder = [
             'headerComponent',
             'summaryCardsComponent',
-            'contractFormComponent',
-            'contractsListComponent'
+            'contractFormComponent'
         ];
 
         componentOrder.forEach(componentName => {
@@ -124,10 +123,6 @@ class EscrowApp {
                             await window.summaryCardsComponent.updateWithRealData();
                         }
                         
-                        if (window.contractsListComponent) {
-                            await window.contractsListComponent.loadRealContracts();
-                        }
-                        
                     } catch (error) {
                         console.log('⚠️ Erro ao carregar dados do contrato:', error.message);
                     }
@@ -156,7 +151,7 @@ class EscrowApp {
         return {
             services: {
                 wallet: !!window.walletService,
-                contract: !!window.contractService
+                realContract: !!window.realContractService
             },
             components: this.components.map(comp => comp.constructor.name),
             walletConnected: window.walletService?.isConnected || false

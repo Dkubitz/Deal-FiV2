@@ -54,7 +54,6 @@ class WalletService {
                 
             } else {
                 console.log('⚠️ Nenhum contrato real encontrado');
-                this.showNoContractNotification();
             }
             
         } catch (error) {
@@ -88,31 +87,6 @@ class WalletService {
         }, 3000);
     }
     
-    showNoContractNotification() {
-        // Criar notificação de aviso
-        const notification = document.createElement('div');
-        notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-            color: white;
-            padding: 15px 20px;
-            border-radius: 12px;
-            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.3);
-            z-index: 1000;
-            font-weight: 600;
-            animation: slideIn 0.3s ease;
-        `;
-        notification.innerHTML = '⚠️ Carteira conectada, mas nenhum contrato encontrado';
-        
-        document.body.appendChild(notification);
-        
-        // Remover após 4 segundos
-        setTimeout(() => {
-            notification.remove();
-        }, 4000);
-    }
 
     async connectWallet() {
         try {
@@ -190,12 +164,8 @@ class WalletService {
                 await window.summaryCardsComponent.updateWithRealData();
             }
             
-            // Atualizar lista de contratos com dados reais
-            if (window.contractsListComponent) {
-                // Garantir que a lista seja renderizada primeiro
-                window.contractsListComponent.render();
-                await window.contractsListComponent.loadRealContracts();
-            }
+            // Lista de contratos agora é gerenciada pelo state-based-ui-component
+            // Não precisa mais renderizar aqui
             
         } catch (error) {
             console.error('❌ Erro ao carregar dados reais:', error);

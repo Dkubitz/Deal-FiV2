@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="src/assets/css/aurora-cards.css">
     <link rel="stylesheet" href="src/assets/css/forms.css">
     <link rel="stylesheet" href="src/assets/css/pages.css">
-    <link rel="stylesheet" href="src/assets/css/animations.css">
 </head>
 <body>
     <!-- Background Video (loop simples) -->
@@ -54,6 +53,9 @@
         <!-- Header Component -->
         <div id="header-component"></div>
 
+        <!-- Summary Cards Container -->
+        <div id="summary-cards-container"></div>
+
         <!-- Main Container -->
         <div class="main-container">
             <!-- Left Column: Formulário de Criação -->
@@ -78,18 +80,20 @@
     <script src="https://unpkg.com/ethers@5.7.2/dist/ethers.umd.min.js"></script>
     <!-- MetaMask Provider Detection -->
     <script src="https://unpkg.com/@metamask/detect-provider/dist/detect-provider.min.js"></script>
-    <!-- Contract ABI -->
+    <!-- Contract ABI and Bytecode -->
     <script src="src/contracts/escrowABI.js"></script>
+    <script src="src/contracts/bytecode.js"></script>
     <script src="src/services/wallet-service.js"></script>
-    <script src="src/services/contract-service.js"></script>
     <script src="src/services/real-contract-service.js"></script>
+    <script src="src/services/contract-state-service.js"></script>
+    <script src="src/services/contract-polling-service.js"></script>
     <script src="src/services/navigation-service.js"></script>
-    <script src="src/services/animation-service.js"></script>
     <script src="src/components/header-component.js"></script>
     <script src="src/components/summary-cards-component.js"></script>
     <script src="src/components/contract-form-component.js"></script>
     <script src="src/components/create-contract-form.js"></script>
-    <script src="src/components/contracts-list-component.js"></script>
+    <script src="src/components/state-based-ui-component.js"></script>
+    <script src="src/components/state-based-ui-component-helpers.js"></script>
     <script src="src/main.js"></script>
     
     <!-- Sem JS: vídeo já contém o efeito ping-pong e roda em loop -->

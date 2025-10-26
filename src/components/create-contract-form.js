@@ -25,73 +25,36 @@ class CreateContractForm {
 
                 <div class="contract-form-container">
                     <form class="contract-form" id="createContractForm" onsubmit="window.createContractForm.handleSubmit(event)">
-                        <!-- Timestamp de confirmação -->
-                        <div style="position: absolute; top: 10px; right: 10px; font-size: 10px; color: #888; background: rgba(255,255,255,0.8); padding: 2px 5px; border-radius: 3px;">
-                            21/10/2025 - 07:17
-                        </div>
-                        
                         <!-- Informações do Recebedor -->
                         <div class="form-section">
-                            <h3>👤 Informações do Recebedor</h3>
+                            <h3>Informações do Recebedor</h3>
                             <div class="form-group">
                                 <label>Endereço da Carteira do Recebedor *</label>
                                 <input type="text" id="payeeAddress" placeholder="0x..." required>
-                                <small>O recebedor precisa conectar sua MetaMask e ter USDC para receber pagamentos</small>
-                            </div>
-                            <div class="form-group">
-                                <label>Email do Recebedor (opcional)</label>
-                                <input type="email" id="payeeEmail" placeholder="recebedor@email.com">
-                                <small>Para notificações por email</small>
-                            </div>
-                        </div>
-
-                        <!-- Verificação de USDC -->
-                        <div class="form-section">
-                            <h3>💰 Verificação de USDC</h3>
-                            <div class="usdc-check">
-                                <div class="usdc-status" id="usdcStatus">
-                                    <span class="status-icon">⏳</span>
-                                    <span class="status-text">Verificando saldo de USDC...</span>
-                                </div>
-                                        <div class="usdc-actions">
-                                            <button type="button" class="btn-secondary" onclick="window.createContractForm.checkUSDCBalance()">
-                                                🔄 Verificar Saldo USDC
-                                            </button>
-                                </div>
-                                <div class="usdc-info">
-                                    <p><strong>Importante:</strong> Você precisa ter USDC na sua carteira para executar este contrato.</p>
-                                    <p>O sistema pagará todas as taxas de gas, mas o valor do contrato será transferido do seu saldo USDC.</p>
-                                </div>
+                                <small>Endereço da carteira que receberá os pagamentos</small>
                             </div>
                         </div>
 
                         <!-- Detalhes do Contrato -->
                         <div class="form-section">
-                            <h3>📄 Detalhes do Contrato</h3>
+                            <h3>Detalhes do Contrato</h3>
                             
                             <div class="form-group">
-                                <label>Descrição do Projeto *</label>
-                                <textarea id="description" placeholder="Descreva o projeto, serviço ou produto..." rows="4" required></textarea>
+                                <label>Valor Total (USDC) *</label>
+                                <input type="number" id="amount" placeholder="100" min="1" step="0.01" required value="100">
+                                <small>Valor total do contrato em USDC</small>
                             </div>
 
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label>Valor Total (USDC) *</label>
-                                            <input type="number" id="amount" placeholder="1000" min="1" step="0.01" required>
-                                            <small>Mínimo: 1 USDC</small>
-                                </div>
-
-                                <div class="form-group">
-                                    <label>Prazo (dias) *</label>
-                                    <input type="number" id="duration" placeholder="30" min="1" max="365" required>
-                                    <small>Máximo: 365 dias</small>
-                                </div>
+                            <div class="form-group">
+                                <label>Prazo (dias) *</label>
+                                <input type="number" id="duration" placeholder="30" min="1" max="365" required>
+                                <small>Prazo máximo para execução do contrato</small>
                             </div>
                         </div>
 
                         <!-- Marcos do Projeto -->
                         <div class="form-section">
-                            <h3>🎯 Marcos do Projeto</h3>
+                            <h3>Marcos do Projeto</h3>
                             <p class="section-description">
                                 Divida o pagamento em marcos. Cada marco representa uma entrega específica.
                             </p>
@@ -107,10 +70,10 @@ class CreateContractForm {
 
                         <!-- Resumo do Deploy -->
                         <div class="payment-summary">
-                            <h3>🔗 Resumo do Deploy</h3>
+                            <h3>Resumo do Deploy</h3>
                             <div class="summary-item">
-                                <span>Gas para Deploy:</span>
-                                <span class="price">~0.05 POL</span>
+                                <span>Taxa de Plataforma:</span>
+                                <span class="price">1 USDC</span>
                             </div>
                             <div class="summary-item">
                                 <span>Valor do Contrato:</span>
@@ -120,9 +83,6 @@ class CreateContractForm {
                                 <span>Rede:</span>
                                 <span>Polygon</span>
                             </div>
-                            <div class="summary-info">
-                                ℹ️ Você pagará gas em POL para criar o contrato e transferirá USDC para o escrow. Todas as transações são na blockchain.
-                            </div>
                         </div>
 
                         <!-- Botões de Ação -->
@@ -131,7 +91,7 @@ class CreateContractForm {
                                 Cancelar
                             </button>
                             <button type="submit" class="btn-primary">
-                                🚀 Deploy Smart Contract
+                                Deploy Smart Contract
                             </button>
                         </div>
                     </form>
@@ -167,16 +127,6 @@ class CreateContractForm {
                         onchange="window.createContractForm.updateMilestone(${index}, this.value)"
                     >
                     <small>Valor: <span id="milestone-value-${index}">-</span> USDC</small>
-                </div>
-                
-                <div class="form-group">
-                    <label>Descrição da Entrega</label>
-                    <input 
-                        type="text" 
-                        placeholder="Ex: Fundação concluída, Design aprovado, etc."
-                        value="${milestone.description || ''}"
-                        onchange="window.createContractForm.updateMilestoneDescription(${index}, this.value)"
-                    >
                 </div>
             </div>
         `).join('');
@@ -228,9 +178,6 @@ class CreateContractForm {
         this.updateMilestoneValues();
     }
 
-    updateMilestoneDescription(index, value) {
-        this.milestones[index].description = value;
-    }
 
     updateMilestoneValues() {
         const amount = parseFloat(document.getElementById('amount')?.value) || 0;
@@ -283,20 +230,24 @@ class CreateContractForm {
             return;
         }
 
-                // Verificar se tem USDC suficiente (já verificado anteriormente)
+        // Validar valor do contrato
         const amount = parseFloat(document.getElementById('amount').value);
-                console.log(`💰 Verificando se ${amount} USDC está disponível...`);
+        
+        if (!amount || isNaN(amount) || amount <= 0) {
+            alert('❌ O valor do contrato deve ser maior que 0 USDC!');
+            return;
+        }
+        
+        console.log(`💰 Criando contrato com valor: ${amount} USDC`);
 
         // Coletar dados do formulário
         const formData = {
             payerAddress: window.walletService.account, // Endereço do pagador (conectado)
             payeeAddress: document.getElementById('payeeAddress').value,
-            payeeEmail: document.getElementById('payeeEmail').value,
-            description: document.getElementById('description').value,
             amount: parseFloat(document.getElementById('amount').value),
             duration: parseInt(document.getElementById('duration').value) * 86400, // Converter dias para segundos
             milestones: this.milestones.map(m => m.percentage),
-                    usdcTokenAddress: '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359' // USDC.e na Polygon
+            usdcTokenAddress: '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359' // USDC.e na Polygon
         };
 
         try {
@@ -472,9 +423,18 @@ class CreateContractForm {
             const signer = provider.getSigner();
             console.log('✅ Conectado à Polygon com endereço:', await signer.getAddress());
 
-            // Carregar bytecode do arquivo
-            const bytecode = await this.loadBytecode();
+            // Usar bytecode carregado globalmente
+            const bytecode = window.contractBytecode;
+            if (!bytecode) {
+                throw new Error('Bytecode não carregado. Verifique se o arquivo bytecode.js está sendo carregado.');
+            }
             console.log('✅ Bytecode carregado:', bytecode.substring(0, 20) + '...');
+
+            // Verificar se ABI está carregado
+            console.log('🔍 Verificando ABI:', window.escrowABI);
+            if (!window.escrowABI) {
+                throw new Error('ABI não carregado. Verifique se o arquivo escrowABI.js está sendo carregado.');
+            }
 
             // Criar factory do contrato
             const factory = new ethers.ContractFactory(window.escrowABI, bytecode, signer);
@@ -503,7 +463,9 @@ class CreateContractForm {
             await contract.deployed();
             
             console.log('✅ Contrato deployado com sucesso!');
-            console.log('📍 Endereço do contrato:', contract.address);
+            console.log('📍 Endereço do contrato deployado:', contract.address);
+            console.log('💰 Valor do contrato deployado:', formData.amount, 'USDC');
+            console.log('🎯 Marcos deployados:', formData.milestones);
 
             return contract.address;
 
@@ -513,30 +475,6 @@ class CreateContractForm {
         }
     }
 
-    /**
-     * Carrega o bytecode do arquivo
-     */
-    async loadBytecode() {
-        try {
-            const response = await fetch('src/contracts/bytecode.js');
-            if (!response.ok) {
-                throw new Error('Erro ao carregar bytecode');
-            }
-            
-            const text = await response.text();
-            // Extrair o bytecode da string
-            const match = text.match(/const\s+bytecode\s*=\s*["']([^"']+)["']/);
-            if (!match) {
-                throw new Error('Bytecode não encontrado no arquivo');
-            }
-            
-            return match[1];
-        } catch (error) {
-            console.error('Erro ao carregar bytecode:', error);
-            // Fallback: bytecode hardcoded (será substituído pelo arquivo)
-            throw new Error('Erro ao carregar bytecode do contrato');
-        }
-    }
 
     /**
      * Mostra loading durante o deploy
@@ -555,46 +493,77 @@ class CreateContractForm {
     }
 
     /**
+     * Mostra botão "Ver Contrato" após deploy bem-sucedido
+     */
+    showViewContractButton(contractAddress) {
+        const submitBtn = document.querySelector('button[type="submit"]');
+        if (submitBtn) {
+            submitBtn.innerHTML = '📋 Ver Contrato';
+            submitBtn.disabled = false;
+            submitBtn.onclick = () => {
+                this.viewDeployedContract(contractAddress);
+            };
+        }
+    }
+
+    /**
      * Mostra sucesso após deploy
      */
     showDeploySuccess(contractAddress, formData) {
-        // Criar modal de sucesso
-        const modal = document.createElement('div');
-        modal.className = 'deploy-success-modal';
-        modal.innerHTML = `
-            <div class="modal-overlay">
-                <div class="modal-content">
-                    <div class="success-icon">🎉</div>
-                    <h2>Contrato Deployado com Sucesso!</h2>
+        // Remover loading do botão
+        this.showDeployLoading(false);
+        
+        // Criar card de sucesso abaixo do formulário
+        const successCard = document.createElement('div');
+        successCard.className = 'deploy-success-card';
+        successCard.id = 'deploySuccessCard';
+        successCard.innerHTML = `
+            <div class="success-card-aurora">
+                <div class="aurora-background"></div>
+                <div class="success-card-content">
+                    <div class="success-header">
+                        <div class="success-icon">🎉</div>
+                        <h2>Contrato Deployado com Sucesso!</h2>
+                        <p class="success-subtitle">Seu contrato foi criado na blockchain Polygon</p>
+                    </div>
                     
-                    <div class="contract-info">
-                        <div class="info-item">
-                            <label>Endereço do Contrato:</label>
-                            <div class="address-box">
-                                <span class="address">${contractAddress}</span>
-                                <button onclick="navigator.clipboard.writeText('${contractAddress}')" class="copy-btn">📋</button>
+                    <div class="contract-details-grid">
+                        <div class="detail-item">
+                            <span class="detail-label">Endereço do Contrato</span>
+                            <div class="address-container">
+                                <span class="address-text">${contractAddress.substring(0, 10)}...${contractAddress.substring(contractAddress.length - 8)}</span>
+                                <button onclick="navigator.clipboard.writeText('${contractAddress}'); this.innerHTML='✅'; setTimeout(() => this.innerHTML='📋', 2000)" class="copy-btn" title="Copiar endereço completo">📋</button>
                             </div>
                         </div>
                         
-                        <div class="info-item">
-                            <label>Valor:</label>
-                            <span class="value">${formData.amount} USDC</span>
+                        <div class="detail-item">
+                            <span class="detail-label">Valor Total</span>
+                            <span class="detail-value">${formData.amount} USDC</span>
                         </div>
                         
-                        <div class="info-item">
-                            <label>Prazo:</label>
-                            <span class="value">${formData.duration / 86400} dias</span>
+                        <div class="detail-item">
+                            <span class="detail-label">Prazo</span>
+                            <span class="detail-value">${formData.duration / 86400} dias</span>
                         </div>
                         
-                        <div class="info-item">
-                            <label>Marcos:</label>
-                            <span class="value">${formData.milestones.join(', ')}%</span>
+                        <div class="detail-item">
+                            <span class="detail-label">Marcos de Pagamento</span>
+                            <span class="detail-value">${formData.milestones.join('%, ')}%</span>
                         </div>
                     </div>
                     
-                    <div class="next-steps">
-                        <h3>Próximos Passos:</h3>
-                        <ol>
+                    <div class="platform-fee-warning">
+                        <div class="warning-icon">⚠️</div>
+                        <div class="warning-content">
+                            <h3>Taxa de Plataforma Obrigatória</h3>
+                            <p>Antes de usar o contrato, você deve pagar a <strong>taxa de plataforma de 1 USDC</strong>. Esta taxa é obrigatória e deve ser paga antes de qualquer depósito.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="next-steps-section">
+                        <h3>📋 Próximos Passos</h3>
+                        <ol class="steps-list">
+                            <li><strong>Pagar taxa de plataforma (1 USDC)</strong> - OBRIGATÓRIO</li>
                             <li>Compartilhe o endereço do contrato com o recebedor</li>
                             <li>O recebedor deve conectar sua carteira ao contrato</li>
                             <li>Faça o depósito inicial de USDC</li>
@@ -602,24 +571,149 @@ class CreateContractForm {
                         </ol>
                     </div>
                     
-                    <div class="modal-actions">
-                        <button onclick="window.open('https://polygonscan.com/address/${contractAddress}', '_blank')" class="btn-secondary">
+                    <div class="success-actions">
+                        <button onclick="window.createContractForm.payPlatformFee('${contractAddress}')" class="btn-action btn-primary-action">
+                            💳 Pagar Taxa (1 USDC)
+                        </button>
+                        <button onclick="window.open('https://polygonscan.com/address/${contractAddress}', '_blank')" class="btn-action btn-secondary-action">
                             🔍 Ver no PolygonScan
                         </button>
-                        <button onclick="this.closest('.deploy-success-modal').remove()" class="btn-primary">
-                            ✅ Entendi
+                        <button onclick="window.createContractForm.viewDeployedContract('${contractAddress}')" class="btn-action btn-secondary-action">
+                            📋 Ver Contrato
                         </button>
                     </div>
                 </div>
             </div>
         `;
         
-        document.body.appendChild(modal);
+        // Inserir card após o formulário
+        const formContainer = document.querySelector('.contract-form-container');
+        if (formContainer && formContainer.parentNode) {
+            formContainer.parentNode.insertBefore(successCard, formContainer.nextSibling);
+            
+            // Scroll suave até o card
+            setTimeout(() => {
+                successCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+        }
+        
+        // Mostrar botão "Ver Contrato" no lugar do botão de deploy
+        this.showViewContractButton(contractAddress);
         
         // Resetar formulário
         document.getElementById('createContractForm').reset();
         this.milestones = [{ percentage: 50 }, { percentage: 50 }];
         this.renderMilestones();
+    }
+
+    /**
+     * Paga a taxa de plataforma de 1 USDC
+     */
+    async payPlatformFee(contractAddress) {
+        try {
+            console.log('💳 Iniciando pagamento da taxa de plataforma...');
+            
+            // Verificar se usuário está conectado
+            if (!window.walletService?.account) {
+                alert('❌ Você precisa estar conectado para pagar a taxa');
+                return;
+            }
+            
+            // Conectar com o contrato
+            if (!window.realContractService) {
+                alert('❌ Serviço de contratos não disponível');
+                return;
+            }
+            
+            // Adicionar contrato se ainda não estiver na lista
+            const userAddress = window.walletService.account;
+            await window.realContractService.addContractByAddress(contractAddress, userAddress);
+            
+            // Mostrar loading
+            const button = event.target;
+            const originalText = button.innerHTML;
+            button.innerHTML = '⏳ Processando...';
+            button.disabled = true;
+            
+            // Chamar função do contrato para pagar taxa
+            const success = await window.realContractService.payPlatformFee(contractAddress);
+            
+            if (success) {
+                console.log('✅ Taxa de plataforma paga com sucesso!');
+                alert('✅ Taxa de plataforma paga com sucesso! Agora você pode usar o contrato.');
+                
+                // Atualizar interface usando novo sistema
+                if (window.navigationService && window.navigationService.currentPage === 'manage') {
+                    await window.navigationService.refreshCurrentPage();
+                }
+                
+                // Remover card de sucesso e navegar para gerenciamento
+                const successCard = document.getElementById('deploySuccessCard');
+                if (successCard) {
+                    successCard.remove();
+                }
+                
+                await this.viewDeployedContract(contractAddress);
+            } else {
+                console.log('❌ Erro ao pagar taxa de plataforma');
+                alert('❌ Erro ao pagar taxa de plataforma. Verifique se você tem USDC suficiente e se aprovou o contrato.');
+            }
+            
+        } catch (error) {
+            console.error('❌ Erro ao pagar taxa:', error);
+            alert('❌ Erro ao pagar taxa: ' + error.message);
+        }
+    }
+
+    /**
+     * Navega para a tela de gerenciamento com o contrato deployado
+     */
+    async viewDeployedContract(contractAddress) {
+        try {
+            console.log('🔗 Navegando para gerenciamento do contrato:', contractAddress);
+            console.log('📍 [viewDeployedContract] Endereço para conectar:', contractAddress);
+            
+            // Remover card de sucesso
+            const successCard = document.getElementById('deploySuccessCard');
+            if (successCard) {
+                successCard.remove();
+            }
+            
+            // Conectar com o contrato deployado (substituir contrato anterior)
+            if (window.realContractService) {
+                const userAddress = window.walletService?.account;
+                if (userAddress) {
+                    console.log('🔗 Conectando com contrato deployado:', contractAddress);
+                    console.log('👤 Usuário:', userAddress);
+                    
+                    const success = await window.realContractService.setActiveContract(contractAddress, userAddress);
+                    
+                    console.log('📍 [viewDeployedContract] Resultado setActiveContract:', success);
+                    console.log('📍 [viewDeployedContract] Contrato ativo agora:', window.realContractService.contractAddress);
+                    
+                    if (success) {
+                        console.log('✅ Contrato conectado com sucesso!');
+                        
+                        // Navegar para tela de gerenciamento (que automaticamente carrega o estado)
+                        if (window.navigationService) {
+                            await window.navigationService.navigateTo('manage');
+                        }
+                    } else {
+                        console.log('⚠️ Erro ao conectar com contrato');
+                        alert('❌ Erro ao conectar com o contrato deployado');
+                    }
+                } else {
+                    console.log('⚠️ Usuário não conectado');
+                    alert('❌ Usuário não conectado');
+                }
+            } else {
+                console.log('⚠️ RealContractService não disponível');
+                alert('❌ Serviço de contratos não disponível');
+            }
+        } catch (error) {
+            console.error('❌ Erro ao navegar para contrato:', error);
+            alert('❌ Erro ao acessar o contrato: ' + error.message);
+        }
     }
 
     /**
