@@ -572,13 +572,10 @@ class CreateContractForm {
                     </div>
                     
                     <div class="success-actions">
-                        <button onclick="window.createContractForm.payPlatformFee('${contractAddress}')" class="btn-action btn-primary-action">
-                            💳 Pagar Taxa (1 USDC)
-                        </button>
                         <button onclick="window.open('https://polygonscan.com/address/${contractAddress}', '_blank')" class="btn-action btn-secondary-action">
                             🔍 Ver no PolygonScan
                         </button>
-                        <button onclick="window.createContractForm.viewDeployedContract('${contractAddress}')" class="btn-action btn-secondary-action">
+                        <button onclick="window.createContractForm.viewDeployedContract('${contractAddress}')" class="btn-action btn-primary-action">
                             📋 Ver Contrato
                         </button>
                     </div>

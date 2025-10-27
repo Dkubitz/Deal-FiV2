@@ -66,6 +66,7 @@ class StateBasedUIComponent {
                         margin-bottom: 25px;
                         padding-bottom: 20px;
                         border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+                        gap: 20px;
                     ">
                         <h3 style="color: #1c1c1e; font-size: 20px; font-weight: 700; margin: 0;">
                             ${state.title}

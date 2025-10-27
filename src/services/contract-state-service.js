@@ -27,7 +27,7 @@ class ContractStateService {
             WAITING_PLATFORM_FEE: {
                 id: 'WAITING_PLATFORM_FEE',
                 phase: 'PRE_DEPOSIT',
-                title: '⏳ Aguardando Taxa de Plataforma',
+                title: 'Aguardando Taxa de Plataforma',
                 description: 'Taxa de 1 USDC deve ser paga',
                 canInteract: true,
                 actions: {

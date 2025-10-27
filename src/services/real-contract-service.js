@@ -272,6 +272,16 @@ class RealContractService {
         }
     }
 
+    // Função para fechar modal com transição
+    closeAddContractModal(modal) {
+        modal.classList.remove('show');
+        setTimeout(() => {
+            if (modal.parentNode) {
+                modal.parentNode.removeChild(modal);
+            }
+        }, 400);
+    }
+
     // Função para mostrar modal de entrada de endereço
     showAddContractModal(userAddress) {
         const modal = document.createElement('div');
@@ -281,14 +291,14 @@ class RealContractService {
                 <div class="modal-content">
                     <div class="modal-header">
                         <h2>🔗 Adicionar Contrato</h2>
-                        <button onclick="this.closest('.add-contract-modal').remove()" class="close-btn">×</button>
+                        <button onclick="window.realContractService.closeAddContractModal(this.closest('.add-contract-modal'))" class="close-btn">×</button>
                     </div>
                     
                     <div class="modal-body">
                         <p>Digite o endereço do contrato que você quer conectar:</p>
                         <input type="text" id="contractAddressInput" placeholder="0x..." class="contract-address-input">
                         <div class="modal-actions">
-                            <button onclick="this.closest('.add-contract-modal').remove()" class="btn-secondary">
+                            <button onclick="window.realContractService.closeAddContractModal(this.closest('.add-contract-modal'))" class="btn-secondary">
                                 Cancelar
                             </button>
                             <button onclick="window.realContractService.handleAddContract('${userAddress}')" class="btn-primary">
@@ -302,11 +312,16 @@ class RealContractService {
         
         document.body.appendChild(modal);
         
-        // Focar no input
+        // Adicionar classe para mostrar com transição
+        setTimeout(() => {
+            modal.classList.add('show');
+        }, 10);
+        
+        // Focar no input após a transição
         setTimeout(() => {
             const input = document.getElementById('contractAddressInput');
             if (input) input.focus();
-        }, 100);
+        }, 400);
     }
 
     // Lidar com adição de contrato
@@ -337,7 +352,7 @@ class RealContractService {
             if (success) {
                 // Fechar modal
                 const modal = document.querySelector('.add-contract-modal');
-                if (modal) modal.remove();
+                if (modal) this.closeAddContractModal(modal);
                 
                 // Recarregar interface
                 if (window.navigationService) {
