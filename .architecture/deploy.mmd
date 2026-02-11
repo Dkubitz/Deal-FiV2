@@ -1,0 +1,11 @@
+flowchart TB
+  U["Usuário (Browser Desktop/Mobile)"] --> GHP["GitHub Pages\n(Static Hosting)"]
+  GHP --> FE["Frontend SPA\n(index.html + src/*)"]
+
+  U --> MMEXT["MetaMask Extension\n(window.ethereum)"]
+  U --> MMMOB["MetaMask Mobile App\n(Browser interno)"]
+
+  FE -->|Deep link| MMDL["metamask.app.link/dapp/*"]
+  MMEXT -->|RPC| POLY["Polygon Network"]
+  MMMOB -->|RPC| POLY
+

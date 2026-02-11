@@ -1,0 +1,30 @@
+flowchart LR
+  %% System structure (code + dependencies)
+
+  subgraph FE["Frontend (Static SPA)"]
+    FE_HTML["index.html"]
+    FE_MAIN["src/main.js"]
+    FE_NAV["src/services/navigation-service.js"]
+    FE_WALLET["src/services/wallet-service.js"]
+    FE_HEADER["src/components/header-component.js"]
+  end
+
+  subgraph EXT["External"]
+    MM["MetaMask (Extension / Mobile App)\nwindow.ethereum"]
+    MMDL["MetaMask App Link (Deep Link)\nmetamask.app.link/dapp/*"]
+    POLY["Polygon Network\n(Smart Contracts)"]
+  end
+
+  %% Frontend wiring
+  FE_HTML --> FE_MAIN
+  FE_MAIN --> FE_NAV
+  FE_MAIN --> FE_WALLET
+  FE_MAIN --> FE_HEADER
+  FE_HEADER --> FE_WALLET
+  FE_NAV --> FE_WALLET
+
+  %% External interactions
+  FE_WALLET --> MM
+  FE_WALLET --> MMDL
+  FE_WALLET --> POLY
+

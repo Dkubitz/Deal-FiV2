@@ -19,11 +19,12 @@ class HeaderComponent {
             // Verificar se há carteira conectada
             const walletAddress = window.walletService?.account || window.walletService?.walletAddress;
             const isConnected = window.walletService?.isConnected;
+            const isConnecting = window.walletService?.isConnecting;
             
             // Mostrar endereço real ou botão de conectar
-            const walletDisplay = isConnected && walletAddress ? 
-                `${walletAddress.substring(0, 6)}...${walletAddress.substring(38)}` : 
-                'Conectar Carteira';
+            const walletDisplay = isConnected && walletAddress
+                ? `${walletAddress.substring(0, 6)}...${walletAddress.substring(38)}`
+                : (isConnecting ? 'Conectando…' : 'Conectar MetaMask');
             
             headerContainer.innerHTML = `
                 <div class="header">
@@ -35,9 +36,9 @@ class HeaderComponent {
                             </div>
                         </div>
                     </div>
-                    <div class="wallet-status" id="walletStatus">
+                    <div class="wallet-status" id="walletStatus" ${isConnecting ? 'aria-busy="true"' : ''}>
                         <div class="wallet-address">
-                            <span class="address-label">${isConnected ? 'Carteira Conectada:' : 'Carteira:'}</span>
+                            <span class="address-label">${isConnected ? 'Carteira Conectada:' : (isConnecting ? 'Carteira:' : 'Carteira (MetaMask):')}</span>
                             <span class="address-value">${walletDisplay}</span>
                         </div>
                     </div>
@@ -54,7 +55,7 @@ class HeaderComponent {
         const walletStatus = document.getElementById('walletStatus');
         if (walletStatus && window.walletService) {
             walletStatus.addEventListener('click', () => {
-                window.walletService.connectWallet();
+                window.walletService.handleConnectClick('header');
             });
         }
     }

@@ -1,0 +1,22 @@
+flowchart LR
+  %% Frontend module view (focused on onboarding/conexão)
+
+  subgraph UI["UI"]
+    HEADER["HeaderComponent\n(src/components/header-component.js)"]
+    HOME["Home (renderHomePage)\n(src/services/navigation-service.js)"]
+  end
+
+  subgraph SVC["Services"]
+    WALLET["WalletService\n(src/services/wallet-service.js)\n- handleConnectClick()\n- showWalletGuidanceModal()\n- connectWallet()"]
+  end
+
+  subgraph EXT["External"]
+    MM["MetaMask / window.ethereum"]
+    MMDL["MetaMask App Link (Deep Link)"]
+  end
+
+  HEADER --> WALLET
+  HOME --> WALLET
+  WALLET --> MM
+  WALLET --> MMDL
+

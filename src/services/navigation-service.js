@@ -153,14 +153,18 @@ class NavigationService {
             <div class="home-content">
                 <div class="welcome-section">
                     <h2>🏠 Bem-vindo</h2>
-                    <p>Plataforma de escrow não-custodial para contratos inteligentes</p>
+                    <p>Escrow não-custodial em USDC na Polygon, com pagamento por marcos</p>
                 </div>
                 
                 <div class="wallet-notice" id="wallet-notice">
                     <div class="notice-card">
                         <div class="notice-icon">🔗</div>
-                        <h3>Conecte sua Carteira</h3>
-                        <p>Para usar os contratos escrow, clique no ícone da MetaMask no canto superior direito para conectar sua carteira.</p>
+                        <h3>Conecte sua MetaMask</h3>
+                        <p>Para criar ou gerenciar contratos escrow, conecte sua carteira. Se você estiver no celular, use o navegador interno da MetaMask.</p>
+                        <div class="notice-actions">
+                            <button class="btn-primary" onclick="window.walletService?.handleConnectClick('home-notice')">Conectar MetaMask</button>
+                            <button class="btn-secondary" onclick="window.walletService?.showWalletGuidanceModal?.()">Como acessar sem MetaMask</button>
+                        </div>
                     </div>
                     
                     <div class="action-card" onclick="window.navigationService.showHelpModal()">

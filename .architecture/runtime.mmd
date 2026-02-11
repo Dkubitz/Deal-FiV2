@@ -1,0 +1,32 @@
+sequenceDiagram
+  autonumber
+  actor U as Usuário (Browser)
+  participant FE as Frontend (GitHub Pages / Static)
+  participant MM as MetaMask (window.ethereum)
+  participant MMDL as MetaMask App Link
+  participant PX as Polygon Network
+
+  U->>FE: Acessa o site
+  FE-->>U: Renderiza Home + CTA "Conectar MetaMask"
+
+  U->>FE: Clica em Conectar
+  alt MetaMask não detectada (desktop/mobile)
+    FE-->>U: Abre modal com instruções + CTAs
+    opt Mobile
+      FE->>MMDL: Deep link "Abrir na MetaMask"
+    end
+  else MetaMask detectada
+    FE->>MM: eth_requestAccounts
+    alt Usuário rejeita
+      MM-->>FE: Erro 4001
+      FE-->>U: Toast "Conexão cancelada"
+    else Usuário aprova
+      MM-->>FE: Conta conectada
+      opt Rede incorreta
+        FE->>MM: wallet_switchEthereumChain / wallet_addEthereumChain
+      end
+      FE->>PX: Chamadas via ethers.js (leitura/escrita)
+      PX-->>FE: Resultados / tx receipts
+    end
+  end
+
