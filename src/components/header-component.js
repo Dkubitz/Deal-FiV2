@@ -55,6 +55,7 @@ class HeaderComponent {
         const walletStatus = document.getElementById('walletStatus');
         if (walletStatus && window.walletService) {
             walletStatus.addEventListener('click', () => {
+                // Se já estiver conectado, o clique serve como "trocar conta"
                 window.walletService.handleConnectClick('header');
             });
         }

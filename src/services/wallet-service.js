@@ -6,6 +6,9 @@ class WalletService {
         this.isConnected = false;
         this.walletAddress = null;
         this.isConnecting = false;
+        this._ethereumListenersBound = false;
+        this._onAccountsChanged = null;
+        this._onChainChanged = null;
         this.init();
     }
 
@@ -13,6 +16,9 @@ class WalletService {
         // NÃO inicializar automaticamente - deixar para o main.js controlar
         console.log('🔧 WalletService inicializado (sem auto-init)');
         this.bindEvents();
+
+        // Se MetaMask já existir, já preparar listeners (troca de conta/rede)
+        this.ensureEthereumListenersBound();
     }
 
     bindEvents() {
@@ -142,7 +148,140 @@ class WalletService {
             return { success: false, error: 'NO_PROVIDER' };
         }
 
+        // Se já está conectado, usar clique como "trocar conta"
+        if (this.isConnected) {
+            return await this.requestAccountSelection(source);
+        }
+
         return await this.connectWallet();
+    }
+
+    ensureEthereumListenersBound() {
+        try {
+            if (this._ethereumListenersBound) return;
+            if (!window.ethereum || typeof window.ethereum.on !== 'function') return;
+
+            this._onAccountsChanged = (accounts) => this.handleAccountsChanged(accounts);
+            this._onChainChanged = (chainId) => this.handleChainChanged(chainId);
+
+            window.ethereum.on('accountsChanged', this._onAccountsChanged);
+            window.ethereum.on('chainChanged', this._onChainChanged);
+
+            this._ethereumListenersBound = true;
+            console.log('🎧 Listeners MetaMask bound: accountsChanged/chainChanged');
+        } catch (e) {
+            console.warn('⚠️ Falha ao bindar listeners da MetaMask:', e);
+        }
+    }
+
+    handleAccountsChanged(accounts) {
+        try {
+            const nextAccount = Array.isArray(accounts) ? accounts[0] : null;
+
+            if (!nextAccount) {
+                // Site sem contas autorizadas ou usuário removeu permissões
+                this.isConnected = false;
+                this.walletAddress = null;
+                this.account = null;
+                this.updateWalletStatus();
+
+                this.showToast({ variant: 'warning', message: '🔌 Carteira desconectada (nenhuma conta autorizada).' });
+                document.dispatchEvent(new CustomEvent('walletDisconnected', { detail: { isConnected: false } }));
+                return;
+            }
+
+            const changed = nextAccount !== this.walletAddress;
+            this.account = nextAccount;
+            this.walletAddress = nextAccount;
+            this.isConnected = true;
+            this.updateWalletStatus();
+
+            if (changed) {
+                this.showToast({ variant: 'info', message: '🔄 Conta alterada na MetaMask.' });
+                // Reusar evento existente para que a Home atualize (quick-actions)
+                document.dispatchEvent(new CustomEvent('walletConnected', {
+                    detail: { address: this.walletAddress, isConnected: this.isConnected }
+                }));
+            }
+        } catch (e) {
+            console.warn('⚠️ Erro ao tratar accountsChanged:', e);
+        }
+    }
+
+    handleChainChanged(chainId) {
+        // MetaMask recomenda recarregar a página ao trocar a rede
+        this.showToast({
+            variant: 'info',
+            message: '🌐 Rede alterada na MetaMask. Se algo não atualizar, recarregue a página.'
+        });
+        console.log('🌐 chainChanged:', chainId);
+    }
+
+    async requestAccountSelection(source = 'unknown') {
+        try {
+            if (!window.ethereum?.request) {
+                this.showToast({ variant: 'warning', message: '🦊 MetaMask não detectada.' });
+                return { success: false, error: 'NO_PROVIDER' };
+            }
+
+            this.ensureEthereumListenersBound();
+
+            // Forçar UI de permissões / seleção de contas (quando suportado)
+            // Isso costuma abrir o seletor de contas mesmo quando o site já está autorizado
+            this.showToast({ variant: 'info', message: '🦊 Selecione a conta na MetaMask…' });
+
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_requestPermissions',
+                    params: [{ eth_accounts: {} }]
+                });
+            } catch (permError) {
+                // 4001 = usuário rejeitou a permissão
+                if (permError?.code === 4001) {
+                    this.showToast({ variant: 'info', message: 'Troca de conta cancelada no MetaMask.' });
+                    return { success: false, error: 'USER_REJECTED' };
+                }
+                // Se não suportar, seguimos para eth_requestAccounts mesmo assim
+                console.warn('⚠️ wallet_requestPermissions falhou (seguindo):', permError);
+            }
+
+            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+            const account = accounts?.[0];
+            if (!account) {
+                this.showToast({ variant: 'error', message: '❌ Nenhuma conta retornada pela MetaMask.' });
+                return { success: false, error: 'NO_ACCOUNT' };
+            }
+
+            const changed = account !== this.walletAddress;
+            this.account = account;
+            this.walletAddress = account;
+            this.isConnected = true;
+            this.updateWalletStatus();
+
+            if (changed) {
+                this.showToast({ variant: 'success', message: '✅ Conta conectada com sucesso.' });
+                document.dispatchEvent(new CustomEvent('walletConnected', {
+                    detail: { address: this.walletAddress, isConnected: this.isConnected }
+                }));
+            } else {
+                this.showToast({ variant: 'info', message: '✅ Você já estava conectado com essa conta.' });
+            }
+
+            console.log(`🔁 requestAccountSelection (source=${source}) ->`, account);
+            return { success: true, address: this.walletAddress };
+        } catch (error) {
+            if (error?.code === 4001) {
+                this.showToast({ variant: 'info', message: 'Troca de conta cancelada no MetaMask.' });
+                return { success: false, error: 'USER_REJECTED' };
+            }
+            const message = (error?.message || '').toString();
+            this.showToast({
+                variant: 'error',
+                message: message ? `❌ Falha ao trocar conta: ${message}` : '❌ Falha ao trocar conta.'
+            });
+            console.error('❌ Erro em requestAccountSelection:', error);
+            return { success: false, error: message || 'SWITCH_ACCOUNT_FAILED' };
+        }
     }
 
     showWalletGuidanceModal(env = this.getWalletEnvironment()) {
@@ -227,6 +366,8 @@ class WalletService {
                 this.showWalletGuidanceModal(this.getWalletEnvironment());
                 return { success: false, error: 'NO_PROVIDER' };
             }
+
+            this.ensureEthereumListenersBound();
 
             console.log('🔍 MetaMask detectado, solicitando conexão...');
             console.log('⏳ Aguardando resposta do MetaMask...');

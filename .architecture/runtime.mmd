@@ -30,3 +30,8 @@ sequenceDiagram
     end
   end
 
+  opt Usuário troca conta na MetaMask
+    MM-->>FE: accountsChanged([newAccount])
+    FE-->>U: UI atualiza (header/home) + toast
+  end
+
