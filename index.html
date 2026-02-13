@@ -19,32 +19,34 @@
     <div class="watermark-overlay"></div>
     
     <div id="app">
-        <!-- Polygon Logo no canto superior esquerdo -->
-        <div class="polygon-screen-corner">
-            <img src="polygon-matic-seeklogo.png" alt="Polygon Network" width="64" height="64" 
-                 onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-            <svg width="64" height="64" viewBox="0 0 64 64" fill="none" style="display: none;">
-                <path d="M32 4L56 12V52L32 60L8 52V12L32 4Z" fill="url(#polygon-gradient)" stroke="url(#polygon-gradient)" stroke-width="2"/>
-                <path d="M32 12L48 18V46L32 52L16 46V18L32 12Z" fill="url(#polygon-gradient-inner)" opacity="0.6"/>
-                <defs>
-                    <linearGradient id="polygon-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style="stop-color:#8247E5"/>
-                        <stop offset="100%" style="stop-color:#00D4FF"/>
-                    </linearGradient>
-                    <linearGradient id="polygon-gradient-inner" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style="stop-color:#8247E5"/>
-                        <stop offset="100%" style="stop-color:#00D4FF"/>
-                    </linearGradient>
-                </defs>
-            </svg>
-        </div>
+        <!-- Top bar: ícones + header (não fixa, não acompanha scroll) -->
+        <div class="top-bar">
+            <div class="top-icon polygon-icon" aria-label="Polygon">
+                <img src="polygon-matic-seeklogo.png" alt="Polygon Network" width="36" height="36"
+                     onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                <svg width="36" height="36" viewBox="0 0 64 64" fill="none" style="display: none;">
+                    <path d="M32 4L56 12V52L32 60L8 52V12L32 4Z" fill="url(#polygon-gradient)" stroke="url(#polygon-gradient)" stroke-width="2"/>
+                    <path d="M32 12L48 18V46L32 52L16 46V18L32 12Z" fill="url(#polygon-gradient-inner)" opacity="0.6"/>
+                    <defs>
+                        <linearGradient id="polygon-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#8247E5"/>
+                            <stop offset="100%" style="stop-color:#00D4FF"/>
+                        </linearGradient>
+                        <linearGradient id="polygon-gradient-inner" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#8247E5"/>
+                            <stop offset="100%" style="stop-color:#00D4FF"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+            </div>
 
-        <!-- MetaMask Logo no canto superior direito - CLICÁVEL -->
-        <div class="metamask-screen-corner" onclick="window.walletService.connectWallet()" 
-             style="cursor: pointer; transition: all 0.3s ease;" 
-             onmouseover="this.style.transform='scale(1.1)'; this.style.filter='drop-shadow(0 8px 20px rgba(255, 193, 7, 0.4))';" 
-             onmouseout="this.style.transform='scale(1)'; this.style.filter='none';">
-            <svg width="64" height="64" viewBox="0 0 142 136.906" xmlns="http://www.w3.org/2000/svg">
+            <!-- Header Component -->
+            <div id="header-component"></div>
+
+            <div class="top-icon metamask-icon" role="button" tabindex="0"
+                 aria-label="Conectar MetaMask"
+                 onclick="window.walletService?.handleConnectClick?.('top-icon')">
+                <svg width="36" height="36" viewBox="0 0 142 136.906" xmlns="http://www.w3.org/2000/svg">
                 <path style="fill:#0A0A0A;" d="M131.68,131.191l-30.082-8.914l-22.684,13.497h-15.83l-22.699-13.497l-30.066,8.914l-9.142-30.739l9.149-34.113L1.176,37.496l9.142-35.744l46.983,27.946h27.395L131.68,1.751l9.149,35.744l-9.149,28.844l9.149,34.113L131.68,131.191L131.68,131.191z"/>
                 <path style="fill:#89B0FF;" d="M139.32,101.578l-8.394,28.203l-28.188-8.365l-2.265-0.671l-3.23-0.959l-13.829-4.107l-1.208,0.159l-0.468,1.706l17.075,5.066l-20.216,12.033H63.417l-20.215-12.033l17.068-5.058l-0.469-1.714l-1.2-0.159l-17.067,5.066l-2.265,0.671l-28.18,8.365l-8.395-28.203L0,100.476l9.564,32.12l30.678-9.111l22.549,13.421h16.434l22.548-13.421l30.678,9.111l9.557-32.12L139.32,101.578z"/>
                 <path style="fill:#D075FF;" d="M39.269,101.577v19.838l2.265-0.671v-18.012l17.067,12.946l1.2,0.159l1.117-1.245L40.771,99.312H2.656l8.538-31.841l-2.045-1.11L0,100.475l2.695,1.102H39.269z M109.645,83.687l-7.247,1.789v2.34l10.674-2.642l0.068-17.703h-1.502l-0.763-0.52l-0.06,14.712l-8.749-8.258H83.912l-0.347,2.272h17.604C101.169,75.677,109.645,83.687,109.645,83.687z"/>
@@ -52,10 +54,8 @@
                 <path style="fill:#FF5C16;" d="M28.867,67.471h1.509l0.763-0.522l23.469-16.078l3.495,22.54l0.347,2.273l5.51,35.548l1.963-0.793h0.204l-9.542-61.568l1.758-18.035h25.326l1.751,18.056l-9.542,61.545h0.205l1.962,0.793l5.51-35.548l0.347-2.272h0.008l3.495-22.541l23.461,16.079l0.763,0.528h19.182l2.045-1.109l9.142-28.837L132.406,0L84.418,28.565H57.598L9.602,0L0,37.533L9.142,66.37l2.045,1.109H28.86L28.867,67.471z M139.652,37.465l-8.801,27.741h-18.487L88.306,48.728l42.786-44.72l8.56,33.456V37.465z M125.114,6.982L87.461,46.334l-1.564-16.012C85.898,30.322,125.114,6.982,125.114,6.982z M56.11,30.314l-1.555,16.02L16.902,6.975L56.11,30.307v0.008V30.314z M2.355,37.465l8.56-33.456l42.786,44.719L29.645,65.206H11.157L2.355,37.464V37.465z"/>
                 <path style="fill:#BAF24A;" d="M77.343,110.439H64.671l-4.869,5.398l2.424,8.839h17.551l2.424-8.839l-4.869-5.398h0.015H77.343z M78.046,122.412h-14.07l-1.646-5.993l3.329-3.692h10.704l3.329,3.692C79.692,116.418,78.046,122.412,78.046,122.412z M58.467,91.129l-0.212-0.552v-0.014l-3.752-9.723H44.357l-4.74,4.635v2.332l16.735,4.137l2.113-0.815H58.467z M45.278,83.112h7.67l2.409,6.236l-13.15-3.246l3.065-2.989h0.007L45.278,83.112z M85.649,91.945l16.736-4.136v-2.333l-4.741-4.626H87.498l-3.751,9.714v0.015l-0.212,0.552L85.649,91.945L85.649,91.945z M99.789,86.102l-13.15,3.246l2.409-6.242h7.669l3.065,2.997h0.007L99.789,86.102z"/>
             </svg>
+            </div>
         </div>
-
-        <!-- Header Component -->
-        <div id="header-component"></div>
 
         <!-- Main Container -->
         <div class="main-container">

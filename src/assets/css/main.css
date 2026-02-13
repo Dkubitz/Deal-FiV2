@@ -81,6 +81,84 @@ body {
     margin-right: auto;
 }
 
+/* ===== TOP BAR (ÍCONES + HEADER) ===== */
+.top-bar {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 14px;
+    max-width: 1100px;
+    width: 100%;
+    margin: 0 auto 18px auto;
+}
+
+/* Deixar o header “encaixar” no grid sem margens extras */
+.top-bar #header-component {
+    width: 100%;
+}
+
+.top-icon {
+    width: 86px;
+    height: 86px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.22);
+    user-select: none;
+}
+
+.top-icon img,
+.top-icon svg {
+    width: 56px;
+    height: 56px;
+}
+
+.polygon-icon {
+    background: linear-gradient(135deg, rgba(130, 71, 229, 0.16) 0%, rgba(0, 212, 255, 0.22) 100%);
+    border-color: rgba(130, 71, 229, 0.28);
+}
+
+.metamask-icon {
+    background: linear-gradient(135deg, rgba(255, 92, 22, 0.14) 0%, rgba(255, 92, 22, 0.22) 100%);
+    border-color: rgba(255, 92, 22, 0.28);
+    cursor: pointer;
+}
+
+.metamask-icon:active {
+    transform: scale(0.98);
+}
+
+@media (max-width: 720px) {
+    /* Quando não couber ao lado, ícones ficam juntos acima */
+    .top-bar {
+        grid-template-columns: 1fr 1fr;
+        grid-template-areas:
+            "polygon metamask"
+            "header header";
+        row-gap: 12px;
+    }
+
+    .top-bar .polygon-icon { grid-area: polygon; justify-self: start; }
+    .top-bar .metamask-icon { grid-area: metamask; justify-self: end; }
+    .top-bar #header-component { grid-area: header; }
+}
+
+@media (max-width: 420px) {
+    .top-icon {
+        width: 72px;
+        height: 72px;
+    }
+
+    .top-icon img,
+    .top-icon svg {
+        width: 46px;
+        height: 46px;
+    }
+}
+
 
 /* Efeito de brilho removido para minimizar bordas */
 
@@ -882,22 +960,8 @@ h1 {
 
 /* ===== POLYGON SCREEN CORNER ===== */
 .polygon-screen-corner {
-    position: fixed;
-    top: 20px;
-    left: 20px;
-    width: 100px;
-    height: 100px;
-    background: linear-gradient(135deg, rgba(130, 71, 229, 0.15) 0%, rgba(0, 212, 255, 0.25) 100%);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 3px solid rgba(130, 71, 229, 0.4);
-    backdrop-filter: blur(15px);
-    box-shadow: 0 12px 35px rgba(130, 71, 229, 0.4);
-    transition: all 0.3s ease;
-    z-index: 1000;
-    cursor: pointer;
+    /* DEPRECADO: ícones foram movidos para .top-bar */
+    display: none;
 }
 
 .polygon-screen-corner:hover {
@@ -915,22 +979,8 @@ h1 {
 
 /* ===== METAMASK SCREEN CORNER ===== */
 .metamask-screen-corner {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    width: 100px;
-    height: 100px;
-    background: linear-gradient(135deg, rgba(255, 92, 22, 0.15) 0%, rgba(255, 92, 22, 0.25) 100%);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 3px solid rgba(255, 92, 22, 0.4);
-    backdrop-filter: blur(15px);
-    box-shadow: 0 12px 35px rgba(255, 92, 22, 0.4);
-    transition: all 0.3s ease;
-    z-index: 1000;
-    cursor: pointer;
+    /* DEPRECADO: ícones foram movidos para .top-bar */
+    display: none;
 }
 
 .metamask-screen-corner:hover {
