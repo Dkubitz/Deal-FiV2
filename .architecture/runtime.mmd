@@ -9,6 +9,7 @@ sequenceDiagram
   U->>FE: Acessa o site
   FE-->>U: Renderiza Home + CTA "Conectar MetaMask"
   FE-->>U: Anima slogan (digitação + re-digitação da palavra, pausa em Transparente)
+  FE-->>U: Tenta autoplay do vídeo de fundo (fallback se falhar)
 
   U->>FE: Clica em Conectar
   alt MetaMask não detectada (desktop/mobile)

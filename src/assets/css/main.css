@@ -16,6 +16,25 @@
 
 .bgvid-hidden { opacity: 0; }
 
+/* Fallback quando vídeo não roda */
+html.no-bg-video, html.no-bg-video body {
+    background: radial-gradient(1200px 800px at 20% 20%, rgba(102, 126, 234, 0.18), transparent 55%),
+                radial-gradient(900px 700px at 85% 25%, rgba(255, 92, 22, 0.12), transparent 55%),
+                radial-gradient(1100px 900px at 50% 85%, rgba(130, 71, 229, 0.16), transparent 60%),
+                #050509 !important;
+}
+
+html.no-bg-video #bg-video {
+    display: none;
+}
+
+/* Em mobile, evitar filter no vídeo (melhora compat/perf em iOS/Android) */
+@media (max-width: 768px) {
+    #bg-video {
+        filter: none;
+    }
+}
+
 /* ===== OVERLAY PARA COBRIR MARCA D'ÁGUA ===== */
 .watermark-overlay {
     position: fixed;

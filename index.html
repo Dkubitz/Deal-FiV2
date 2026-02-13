@@ -11,7 +11,7 @@
 </head>
 <body>
     <!-- Background Video (loop simples) -->
-    <video id="bg-video" muted playsinline aria-hidden="true" preload="auto" autoplay loop>
+    <video id="bg-video" muted playsinline webkit-playsinline aria-hidden="true" preload="metadata" autoplay loop disablepictureinpicture>
         <source src="video_pronto_pingpong.mp4" type="video/mp4">
     </video>
     
@@ -96,6 +96,44 @@
     <script src="src/components/state-based-ui-component.js"></script>
     <script src="src/components/state-based-ui-component-helpers.js"></script>
     <script src="src/main.js"></script>
+
+    <!-- Fallback/compat: tentar autoplay e degradar com elegância -->
+    <script>
+      (function () {
+        var v = document.getElementById('bg-video');
+        if (!v) return;
+
+        var markNoVideo = function () {
+          document.documentElement.classList.add('no-bg-video');
+        };
+
+        var tryPlay = function () {
+          try {
+            var p = v.play();
+            if (p && typeof p.catch === 'function') p.catch(function () {});
+          } catch (e) {}
+        };
+
+        v.addEventListener('error', markNoVideo, { passive: true });
+        // Se o arquivo não carregar ou o browser bloquear, cair para fallback após um tempo
+        setTimeout(function () {
+          if (v.readyState === 0 || v.paused) markNoVideo();
+        }, 2500);
+
+        // 1ª tentativa imediata
+        tryPlay();
+
+        // iOS/alguns navegadores só permitem iniciar após gesto do usuário
+        var onFirstGesture = function () { tryPlay(); };
+        window.addEventListener('touchstart', onFirstGesture, { once: true, passive: true });
+        window.addEventListener('pointerdown', onFirstGesture, { once: true, passive: true });
+        window.addEventListener('click', onFirstGesture, { once: true, passive: true });
+
+        document.addEventListener('visibilitychange', function () {
+          if (!document.hidden) tryPlay();
+        }, { passive: true });
+      })();
+    </script>
     
     <!-- Sem JS: vídeo já contém o efeito ping-pong e roda em loop -->
     <script></script>
