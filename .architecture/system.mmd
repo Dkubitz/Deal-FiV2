@@ -6,7 +6,14 @@ flowchart LR
     FE_MAIN["src/main.js"]
     FE_NAV["src/services/navigation-service.js"]
     FE_WALLET["src/services/wallet-service.js"]
+    FE_REAL["src/services/real-contract-service.js"]
+    FE_STATE["src/services/contract-state-service.js"]
+    FE_POLL["src/services/contract-polling-service.js"]
     FE_HEADER["src/components/header-component.js"]
+    FE_STATE_UI["src/components/state-based-ui-component.js"]
+    FE_FORM["src/components/contract-form-component.js"]
+    FE_CREATE_FORM["src/components/create-contract-form.js"]
+    FE_CREATE_WIZ["src/components/create-contract-wizard.js"]
   end
 
   subgraph EXT["External"]
@@ -19,12 +26,27 @@ flowchart LR
   FE_HTML --> FE_MAIN
   FE_MAIN --> FE_NAV
   FE_MAIN --> FE_WALLET
+  FE_MAIN --> FE_REAL
+  FE_MAIN --> FE_STATE
+  FE_MAIN --> FE_POLL
   FE_MAIN --> FE_HEADER
+  FE_MAIN --> FE_STATE_UI
+  FE_MAIN --> FE_FORM
+  FE_MAIN --> FE_CREATE_FORM
+  FE_MAIN --> FE_CREATE_WIZ
   FE_HEADER --> FE_WALLET
   FE_NAV --> FE_WALLET
+  FE_WALLET --> FE_REAL
+  FE_REAL --> FE_STATE
+  FE_NAV --> FE_STATE_UI
+  FE_NAV --> FE_FORM
+  FE_NAV --> FE_CREATE_WIZ
+  FE_CREATE_WIZ --> FE_CREATE_FORM
 
   %% External interactions
   FE_WALLET --> MM
   FE_WALLET --> MMDL
-  FE_WALLET --> POLY
+  FE_REAL --> POLY
+  FE_CREATE_FORM --> MM
+  FE_CREATE_FORM --> POLY
 

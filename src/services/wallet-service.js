@@ -44,14 +44,7 @@ class WalletService {
             // 2. Verificar se há contrato real conectado
             if (window.realContractService && window.realContractService.contract) {
                 console.log('✅ Contrato real encontrado!');
-                
-                // 3. Atualizar summary cards com dados reais
-                if (window.summaryCardsComponent) {
-                    window.summaryCardsComponent.render();
-                    await window.summaryCardsComponent.updateWithRealData();
-                    console.log('✅ Summary cards atualizados com dados reais');
-                }
-                
+
             // 4. NÃO atualizar lista de contratos na tela inicial
             // A lista só será carregada quando o usuário clicar em "Gerenciar Contratos"
             console.log('✅ Conexão completa - dados prontos para uso');
@@ -507,13 +500,6 @@ class WalletService {
                 
                 // Atualizar interface com dados reais
                 this.updateInterfaceWithRealData(contractData);
-            }
-            
-            // Atualizar summary cards com dados reais
-            if (window.summaryCardsComponent) {
-                // Garantir que os cards sejam renderizados primeiro
-                window.summaryCardsComponent.render();
-                await window.summaryCardsComponent.updateWithRealData();
             }
             
             // Lista de contratos agora é gerenciada pelo state-based-ui-component

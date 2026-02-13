@@ -361,10 +361,7 @@ class RealContractService {
                 }
                 
                 // Atualizar summary cards APENAS se estiver na página home
-                if (window.summaryCardsComponent && window.navigationService?.currentPage === 'home') {
-                    const details = await this.getContractDetails();
-                    await window.summaryCardsComponent.updateSummaryElements(details);
-                }
+                // Summary cards removidos do layout (mobile-first)
                 
                 alert('✅ Contrato conectado com sucesso!');
             } else {

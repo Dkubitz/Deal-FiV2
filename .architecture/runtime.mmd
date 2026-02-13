@@ -35,3 +35,16 @@ sequenceDiagram
     FE-->>U: UI atualiza (header/home) + toast
   end
 
+  U->>FE: Navega para Criar Contrato
+  FE-->>U: Mostra wizard (passo-a-passo)
+  loop Passos do wizard (validando por etapa)
+    U->>FE: Preenche etapa atual
+    FE-->>U: Voltar/Próximo (não avança se inválido)
+  end
+  U->>FE: Revisão e Deploy
+  FE->>MM: Assina transação de deploy (ethers)
+  MM-->>FE: Tx enviada
+  FE->>PX: Deploy do contrato
+  PX-->>FE: Contract address
+  FE-->>U: Card final (resumo + aviso + botão Copiar)
+

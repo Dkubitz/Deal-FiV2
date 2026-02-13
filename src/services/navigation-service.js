@@ -289,11 +289,9 @@ class NavigationService {
         if (window.contractPollingService) {
             window.contractPollingService.stopPolling();
         }
-        // Usar o formulário avançado do create-contract-form.js
-        container.innerHTML = window.createContractForm.render();
-        
-        // Inicializar eventos do formulário avançado
-        window.createContractForm.bindEvents();
+        // Usar wizard mobile-first (passo-a-passo)
+        container.innerHTML = window.createContractWizard.render();
+        window.createContractWizard.bindEvents();
     }
 
     /**
@@ -1681,12 +1679,7 @@ class NavigationService {
                 console.log('🔍 Carregando contratos reais...');
                 const contracts = await window.realContractService.fetchRealContracts();
                 console.log('✅ Contratos reais carregados:', contracts);
-                
-                // Atualizar estatísticas
-                if (window.summaryCardsComponent) {
-                    const stats = await window.realContractService.getStats();
-                    console.log('📊 Estatísticas atualizadas:', stats);
-                }
+                // Summary cards removidos do layout (mobile-first)
                 
                 // Re-renderizar a página de gerenciamento se estivermos nela
                 if (this.currentPage === 'manage') {

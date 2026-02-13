@@ -55,7 +55,6 @@ class EscrowApp {
         // Ordem de inicialização importante
         const componentOrder = [
             'headerComponent',
-            'summaryCardsComponent',
             'contractFormComponent'
         ];
 
@@ -95,11 +94,6 @@ class EscrowApp {
             window.navigationService.renderHomePage(mainContainer);
         }
         
-        // 4. QUARTO: Renderizar summary cards na página inicial
-        if (window.summaryCardsComponent) {
-            window.summaryCardsComponent.render();
-        }
-        
         console.log('✅ Tela inicial organizada renderizada!');
     }
     
@@ -119,9 +113,7 @@ class EscrowApp {
                         console.log('📊 Dados do contrato carregados:', contractData);
                         
                         // Atualizar interface com dados reais
-                        if (window.summaryCardsComponent) {
-                            await window.summaryCardsComponent.updateWithRealData();
-                        }
+                        // Summary cards removidos do layout (mobile-first)
                         
                     } catch (error) {
                         console.log('⚠️ Erro ao carregar dados do contrato:', error.message);

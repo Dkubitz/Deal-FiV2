@@ -1,13 +1,15 @@
 flowchart LR
-  %% Frontend module view (focused on onboarding/conexão)
+  %% Frontend module view (onboarding + criação)
 
   subgraph UI["UI"]
     HEADER["HeaderComponent\n(src/components/header-component.js)"]
     HOME["Home (renderHomePage)\n(src/services/navigation-service.js)"]
+    CREATE_WIZ["CreateContractWizard\n(src/components/create-contract-wizard.js)"]
   end
 
   subgraph SVC["Services"]
     WALLET["WalletService\n(src/services/wallet-service.js)\n- handleConnectClick()\n- showWalletGuidanceModal()\n- connectWallet()"]
+    CREATE_FORM["CreateContractForm\n(src/components/create-contract-form.js)\n- deploySmartContract()\n- milestones helpers\n- success summary"]
   end
 
   subgraph EXT["External"]
@@ -17,8 +19,12 @@ flowchart LR
 
   HEADER --> WALLET
   HOME --> WALLET
+  CREATE_WIZ --> WALLET
+  CREATE_WIZ --> CREATE_FORM
   WALLET --> MM
   WALLET --> MMDL
 
   MM -- accountsChanged / chainChanged --> WALLET
+
+  CREATE_FORM --> MM
 

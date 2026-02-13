@@ -475,6 +475,150 @@ class CreateContractForm {
         }
     }
 
+    /**
+     * Retorna o HTML do card de sucesso (wizard e fluxo legado).
+     */
+    getDeploySuccessHTML(contractAddress, formData) {
+        const payer = formData?.payerAddress || window.walletService?.account || '';
+        const payee = formData?.payeeAddress || '';
+        const copyPayload = this.buildContractSummaryText(contractAddress, formData);
+        const encodedCopy = encodeURIComponent(copyPayload);
+
+        const safeShort = (addr) => {
+            if (!addr || addr.length < 10) return addr || '-';
+            return `${addr.substring(0, 10)}...${addr.substring(Math.max(addr.length - 8, 0))}`;
+        };
+
+        return `
+            <div class="deploy-success-card" id="deploySuccessCard">
+                <div class="success-card-aurora">
+                    <div class="aurora-background"></div>
+                    <div class="success-card-content">
+                        <div class="success-header">
+                            <div class="success-icon">🎉</div>
+                            <h2>Contrato Deployado com Sucesso!</h2>
+                            <p class="success-subtitle">Seu contrato foi criado na blockchain Polygon</p>
+                        </div>
+                        
+                        <div class="contract-details-grid">
+                            <div class="detail-item">
+                                <span class="detail-label">Endereço do Contrato</span>
+                                <div class="address-container">
+                                    <span class="address-text">${contractAddress.substring(0, 10)}...${contractAddress.substring(contractAddress.length - 8)}</span>
+                                    <button onclick="navigator.clipboard.writeText('${contractAddress}'); this.innerHTML='✅'; setTimeout(() => this.innerHTML='📋', 2000)" class="copy-btn" title="Copiar endereço completo">📋</button>
+                                </div>
+                            </div>
+                            
+                            <div class="detail-item">
+                                <span class="detail-label">Pagador</span>
+                                <span class="detail-value">${safeShort(payer)}</span>
+                            </div>
+                            
+                            <div class="detail-item">
+                                <span class="detail-label">Recebedor</span>
+                                <span class="detail-value">${safeShort(payee)}</span>
+                            </div>
+
+                            <div class="detail-item">
+                                <span class="detail-label">Valor Total</span>
+                                <span class="detail-value">${formData.amount} USDC</span>
+                            </div>
+                            
+                            <div class="detail-item">
+                                <span class="detail-label">Prazo</span>
+                                <span class="detail-value">${formData.duration / 86400} dias</span>
+                            </div>
+                            
+                            <div class="detail-item">
+                                <span class="detail-label">Marcos de Pagamento</span>
+                                <span class="detail-value">${formData.milestones.join('%, ')}%</span>
+                            </div>
+                        </div>
+
+                        <div class="save-instructions">
+                            <strong>Salve estas informações.</strong> Salve uma captura de tela das informações ou clique no botão “Copiar” e cole em suas anotações pessoais para salvar.
+                        </div>
+                        <div class="save-actions">
+                            <button class="btn-action btn-secondary-action" data-copy-summary="${encodedCopy}" onclick="window.createContractForm.copyContractSummary(this)">
+                                📋 Copiar resumo
+                            </button>
+                        </div>
+                        
+                        <div class="platform-fee-warning">
+                            <div class="warning-icon">⚠️</div>
+                            <div class="warning-content">
+                                <h3>Taxa de Plataforma Obrigatória</h3>
+                                <p>Antes de usar o contrato, você deve pagar a <strong>taxa de plataforma de 1 USDC</strong>. Esta taxa é obrigatória e deve ser paga antes de qualquer depósito.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="next-steps-section">
+                            <h3>📋 Próximos Passos</h3>
+                            <ol class="steps-list">
+                                <li><strong>Pagar taxa de plataforma (1 USDC)</strong> - OBRIGATÓRIO</li>
+                                <li>Compartilhe o endereço do contrato com o recebedor</li>
+                                <li>O recebedor deve conectar sua carteira ao contrato</li>
+                                <li>Faça o depósito inicial de USDC</li>
+                                <li>Execute os marcos conforme acordado</li>
+                            </ol>
+                        </div>
+                        
+                        <div class="success-actions">
+                            <button onclick="window.open('https://polygonscan.com/address/${contractAddress}', '_blank')" class="btn-action btn-secondary-action">
+                                🔍 Ver no PolygonScan
+                            </button>
+                            <button onclick="window.createContractForm.viewDeployedContract('${contractAddress}')" class="btn-action btn-primary-action">
+                                📋 Ver Contrato
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    buildContractSummaryText(contractAddress, formData) {
+        const payer = formData?.payerAddress || window.walletService?.account || '';
+        const payee = formData?.payeeAddress || '';
+        const amount = formData?.amount ?? '';
+        const durationDays = formData?.duration ? (formData.duration / 86400) : '';
+        const milestones = Array.isArray(formData?.milestones) ? (formData.milestones.join('%, ') + '%') : '';
+
+        return [
+            'Deal-Fi | Resumo do Contrato',
+            '',
+            `Contract address: ${contractAddress}`,
+            `Payer: ${payer}`,
+            `Payee: ${payee}`,
+            `Amount (USDC): ${amount}`,
+            `Deadline (dias): ${durationDays}`,
+            `Milestones (%): ${milestones}`,
+        ].join('\n');
+    }
+
+    async copyContractSummary(buttonEl) {
+        try {
+            const payloadEncoded = buttonEl?.getAttribute?.('data-copy-summary') || '';
+            const payload = decodeURIComponent(payloadEncoded);
+            await navigator.clipboard.writeText(payload);
+            if (buttonEl) {
+                const original = buttonEl.innerHTML;
+                buttonEl.innerHTML = '✅ Copiado';
+                setTimeout(() => (buttonEl.innerHTML = original), 2000);
+            }
+        } catch (e) {
+            console.error('❌ Falha ao copiar resumo:', e);
+            alert('❌ Não foi possível copiar. Tente copiar manualmente.');
+        }
+    }
+
+    /**
+     * Hook opcional para pós-render no wizard.
+     */
+    bindSuccessCardActions(contractAddress) {
+        return contractAddress;
+    }
+
 
     /**
      * Mostra loading durante o deploy
@@ -513,75 +657,9 @@ class CreateContractForm {
         // Remover loading do botão
         this.showDeployLoading(false);
         
-        // Criar card de sucesso abaixo do formulário
-        const successCard = document.createElement('div');
-        successCard.className = 'deploy-success-card';
-        successCard.id = 'deploySuccessCard';
-        successCard.innerHTML = `
-            <div class="success-card-aurora">
-                <div class="aurora-background"></div>
-                <div class="success-card-content">
-                    <div class="success-header">
-                        <div class="success-icon">🎉</div>
-                        <h2>Contrato Deployado com Sucesso!</h2>
-                        <p class="success-subtitle">Seu contrato foi criado na blockchain Polygon</p>
-                    </div>
-                    
-                    <div class="contract-details-grid">
-                        <div class="detail-item">
-                            <span class="detail-label">Endereço do Contrato</span>
-                            <div class="address-container">
-                                <span class="address-text">${contractAddress.substring(0, 10)}...${contractAddress.substring(contractAddress.length - 8)}</span>
-                                <button onclick="navigator.clipboard.writeText('${contractAddress}'); this.innerHTML='✅'; setTimeout(() => this.innerHTML='📋', 2000)" class="copy-btn" title="Copiar endereço completo">📋</button>
-                            </div>
-                        </div>
-                        
-                        <div class="detail-item">
-                            <span class="detail-label">Valor Total</span>
-                            <span class="detail-value">${formData.amount} USDC</span>
-                        </div>
-                        
-                        <div class="detail-item">
-                            <span class="detail-label">Prazo</span>
-                            <span class="detail-value">${formData.duration / 86400} dias</span>
-                        </div>
-                        
-                        <div class="detail-item">
-                            <span class="detail-label">Marcos de Pagamento</span>
-                            <span class="detail-value">${formData.milestones.join('%, ')}%</span>
-                        </div>
-                    </div>
-                    
-                    <div class="platform-fee-warning">
-                        <div class="warning-icon">⚠️</div>
-                        <div class="warning-content">
-                            <h3>Taxa de Plataforma Obrigatória</h3>
-                            <p>Antes de usar o contrato, você deve pagar a <strong>taxa de plataforma de 1 USDC</strong>. Esta taxa é obrigatória e deve ser paga antes de qualquer depósito.</p>
-                        </div>
-                    </div>
-                    
-                    <div class="next-steps-section">
-                        <h3>📋 Próximos Passos</h3>
-                        <ol class="steps-list">
-                            <li><strong>Pagar taxa de plataforma (1 USDC)</strong> - OBRIGATÓRIO</li>
-                            <li>Compartilhe o endereço do contrato com o recebedor</li>
-                            <li>O recebedor deve conectar sua carteira ao contrato</li>
-                            <li>Faça o depósito inicial de USDC</li>
-                            <li>Execute os marcos conforme acordado</li>
-                        </ol>
-                    </div>
-                    
-                    <div class="success-actions">
-                        <button onclick="window.open('https://polygonscan.com/address/${contractAddress}', '_blank')" class="btn-action btn-secondary-action">
-                            🔍 Ver no PolygonScan
-                        </button>
-                        <button onclick="window.createContractForm.viewDeployedContract('${contractAddress}')" class="btn-action btn-primary-action">
-                            📋 Ver Contrato
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `;
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = this.getDeploySuccessHTML(contractAddress, formData);
+        const successCard = wrapper.firstElementChild;
         
         // Inserir card após o formulário
         const formContainer = document.querySelector('.contract-form-container');
@@ -598,7 +676,8 @@ class CreateContractForm {
         this.showViewContractButton(contractAddress);
         
         // Resetar formulário
-        document.getElementById('createContractForm').reset();
+        const legacyForm = document.getElementById('createContractForm');
+        if (legacyForm) legacyForm.reset();
         this.milestones = [{ percentage: 50 }, { percentage: 50 }];
         this.renderMilestones();
     }
