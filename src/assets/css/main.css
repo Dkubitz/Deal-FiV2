@@ -632,6 +632,7 @@ h1 {
     align-items: center;
     text-align: left;
     position: relative;
+    z-index: 1100; /* manter acima dos ícones fixos */
 }
 
 .header-left {
@@ -708,6 +709,111 @@ h1 {
     transition: all 0.3s ease;
     backdrop-filter: blur(10px);
     min-width: 280px;
+}
+
+/* ===== HEADER: AJUSTES MOBILE (EVITAR SOBREPOSIÇÃO) ===== */
+@media (max-width: 768px) {
+    .header {
+        gap: 12px;
+        padding: 14px 16px;
+    }
+
+    .wallet-status {
+        min-width: 0;
+        padding: 12px 14px;
+    }
+
+    .address-value {
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 14px;
+    }
+
+    .header {
+        flex-direction: column;
+        align-items: stretch;
+        text-align: left;
+        padding: 12px 14px;
+        border-radius: 18px;
+    }
+
+    .header-left {
+        justify-content: center;
+    }
+
+    .deal-fi-brand {
+        width: 100%;
+        justify-content: center;
+        padding: 10px 14px;
+    }
+
+    .deal-fi-name {
+        font-size: 20px;
+    }
+
+    .wallet-status {
+        width: 100%;
+        min-width: 0;
+        justify-content: center;
+        border-radius: 16px;
+        padding: 12px 14px;
+    }
+
+    .wallet-address {
+        align-items: center;
+        text-align: center;
+    }
+
+    .address-value {
+        font-size: 13px;
+        letter-spacing: 0.2px;
+    }
+
+    /* Ícones fixos nos cantos menores e com menos sombra */
+    .polygon-screen-corner,
+    .metamask-screen-corner {
+        top: 12px;
+        width: 64px;
+        height: 64px;
+        border-width: 2px;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+        backdrop-filter: blur(10px);
+    }
+
+    .polygon-screen-corner {
+        left: 12px;
+    }
+
+    .metamask-screen-corner {
+        right: 12px;
+    }
+
+    .polygon-screen-corner img,
+    .polygon-screen-corner svg,
+    .metamask-screen-corner svg {
+        width: 36px;
+        height: 36px;
+    }
+
+    /* Evitar hover “explodir” no mobile */
+    .polygon-screen-corner:hover,
+    .metamask-screen-corner:hover {
+        transform: none;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+    }
+}
+
+/* Em larguras ultra pequenas (browser estreito), esconder ícones fixos
+   para evitar sobreposição com o header. O acesso à conexão permanece no header. */
+@media (max-width: 420px) {
+    .polygon-screen-corner,
+    .metamask-screen-corner {
+        display: none;
+    }
 }
 
 .wallet-address {
