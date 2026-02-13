@@ -148,12 +148,16 @@ class NavigationService {
         if (window.contractPollingService) {
             window.contractPollingService.stopPolling();
         }
+        // Evitar timers duplicados quando re-renderiza home
+        this.stopHomeHeroEffects?.();
         // Sempre renderizar com card de notificação inicialmente
         container.innerHTML = `
             <div class="home-content">
                 <div class="welcome-section">
                     <h2>🏠 Bem-vindo</h2>
-                    <p>Escrow não-custodial em USDC na Polygon, com pagamento por marcos</p>
+                    <p class="hero-headline" aria-label="Slogan">
+                        <span id="heroTyping"></span><span class="hero-caret" aria-hidden="true"></span>
+                    </p>
                 </div>
                 
                 <div class="wallet-notice" id="wallet-notice">
@@ -206,8 +210,142 @@ class NavigationService {
         
         // Adicionar listener para atualizar quando carteira conectar
         this.addWalletConnectionListener();
+
+        // Efeito do slogan (digitação + rotação das palavras) - apenas na Home
+        this.startHomeHeroEffects();
         
         console.log('🏠 Página inicial renderizada com botões de navegação e right-content');
+    }
+
+    stopHomeHeroEffects() {
+        try {
+            if (this._homeHeroTimers) {
+                this._homeHeroTimers.timeouts?.forEach((t) => clearTimeout(t));
+                if (this._homeHeroTimers.interval) clearInterval(this._homeHeroTimers.interval);
+            }
+        } catch (e) {
+            // noop
+        } finally {
+            this._homeHeroTimers = { timeouts: [], interval: null };
+        }
+    }
+
+    startHomeHeroEffects() {
+        this.stopHomeHeroEffects();
+
+        const typingEl = document.getElementById('heroTyping');
+        if (!typingEl) return;
+
+        const words = ['Seguro', 'Rápido', 'Transparente'];
+        const prefix = 'Seu primeiro acordo ';
+        const suffix = ' na blockchain!';
+
+        // Montar spans para permitir cor diferente no trecho rotativo
+        typingEl.innerHTML = '';
+        const prefixSpan = document.createElement('span');
+        const wordSpan = document.createElement('span');
+        const suffixSpan = document.createElement('span');
+
+        prefixSpan.className = 'hero-white';
+        wordSpan.className = 'hero-highlight';
+        wordSpan.id = 'heroWord';
+        suffixSpan.className = 'hero-white';
+
+        typingEl.appendChild(prefixSpan);
+        typingEl.appendChild(wordSpan);
+        typingEl.appendChild(suffixSpan);
+
+        const segments = [
+            { el: prefixSpan, text: prefix },
+            { el: wordSpan, text: words[0] },
+            { el: suffixSpan, text: suffix }
+        ];
+
+        let segIndex = 0;
+        let charIndex = 0;
+
+        const typeNext = () => {
+            const seg = segments[segIndex];
+            if (!seg) {
+                // Só começa a alternar após terminar de digitar tudo
+                this.startHeroWordRetypeLoop(words);
+                return;
+            }
+
+            const nextChar = seg.text[charIndex];
+            if (nextChar !== undefined) {
+                seg.el.textContent += nextChar;
+                charIndex += 1;
+
+                // delays mais “naturais”
+                const base = 28;
+                const jitter = Math.floor(Math.random() * 35);
+                const isSpace = nextChar === ' ';
+                const isPunct = ['!', '.', ',', ')', '('].includes(nextChar);
+                const delay = isSpace ? base + 10 + jitter : isPunct ? base + 140 + jitter : base + jitter;
+
+                this._homeHeroTimers.timeouts.push(setTimeout(typeNext, delay));
+                return;
+            }
+
+            // próximo segmento
+            segIndex += 1;
+            charIndex = 0;
+            this._homeHeroTimers.timeouts.push(setTimeout(typeNext, 120));
+        };
+
+        typeNext();
+    }
+
+    startHeroWordRetypeLoop(words) {
+        const wordEl = document.getElementById('heroWord');
+        if (!wordEl) return;
+
+        let idx = 0;
+        const schedule = (fn, ms) => {
+            const t = setTimeout(fn, ms);
+            this._homeHeroTimers.timeouts.push(t);
+        };
+
+        const deleteWord = (done) => {
+            const current = wordEl.textContent || '';
+            if (!current.length) return done();
+            wordEl.textContent = current.slice(0, -1);
+            const base = 24;
+            const jitter = Math.floor(Math.random() * 30);
+            schedule(() => deleteWord(done), base + jitter);
+        };
+
+        const typeWord = (word, done) => {
+            let i = 0;
+            const step = () => {
+                if (i >= word.length) return done();
+                const ch = word[i];
+                wordEl.textContent += ch;
+                i += 1;
+                const base = 30;
+                const jitter = Math.floor(Math.random() * 45);
+                const delay = ch === ' ' ? base + 20 + jitter : base + jitter;
+                schedule(step, delay);
+            };
+            step();
+        };
+
+        const cycle = () => {
+            const nextIdx = (idx + 1) % words.length;
+            deleteWord(() => {
+                schedule(() => {
+                    typeWord(words[nextIdx], () => {
+                        idx = nextIdx;
+                        const isLastWord = words[idx] === 'Transparente';
+                        schedule(cycle, isLastWord ? 15000 : 1100);
+                    });
+                }, 180);
+            });
+        };
+
+        // primeira troca após uma pausa curta pós-digitação
+        schedule(cycle, 1200);
     }
 
     /**

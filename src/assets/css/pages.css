@@ -66,6 +66,54 @@
     line-height: 1.6;
 }
 
+/* ===== HERO (TEXTO DINÂMICO) ===== */
+.hero-headline {
+    font-size: 1.35em;
+    max-width: 720px;
+    margin: 0 auto;
+    line-height: 1.55;
+    color: rgba(255, 255, 255, 0.96);
+    text-shadow:
+        0 14px 40px rgba(0, 0, 0, 0.55),
+        0 2px 10px rgba(0, 0, 0, 0.35);
+}
+
+.hero-white {
+    color: rgba(255, 255, 255, 0.96);
+}
+
+.hero-highlight {
+    color: #a78bfa; /* roxo claro (mais contraste) */
+    font-weight: 900;
+    text-shadow:
+        0 10px 30px rgba(167, 139, 250, 0.35),
+        0 2px 10px rgba(0, 0, 0, 0.35);
+}
+
+.hero-caret {
+    display: inline-block;
+    width: 10px;
+    margin-left: 2px;
+    border-right: 2px solid rgba(255, 255, 255, 0.85);
+    transform: translateY(2px);
+    animation: heroCaretBlink 0.9s step-end infinite;
+}
+
+@keyframes heroCaretBlink {
+    0%, 50% { opacity: 1; }
+    50.01%, 100% { opacity: 0; }
+}
+
+/* Mantido para compatibilidade com versões anteriores do efeito */
+.hero-word-fade-out { opacity: 0; transition: opacity 0.18s ease; }
+
+@media (max-width: 480px) {
+    .hero-headline {
+        font-size: 1.15em;
+        max-width: 92vw;
+    }
+}
+
 .quick-actions {
     display: flex;
     gap: 30px;
